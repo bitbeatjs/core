@@ -1,9 +1,9 @@
-import { Boot, Store } from '../index';
-import Cli from '../__core__/cli';
+import { Boot, Events, Status, Store, Cli } from '../index';
 import pun from 'please-upgrade-node';
 import { Command } from 'commander';
 import packageJson from '../package.json';
 import { Logger } from 'pino';
+import { resolve } from 'path';
 
 let boot: Boot,
     store: Store,
@@ -48,6 +48,33 @@ let boot: Boot,
         registerBulk = store.registerBulk.bind(store);
         getClassByName = store.getClassByName.bind(store);
         getInstanceByName = store.getInstanceByName.bind(store);
+
+        // add the boot files
+        boot.next(Events.status, Status.registering);
+        let bootFile;
+        try {
+            bootFile = await import(resolve(boot.baseDir, './boot.js'));
+        } catch (e) {
+            store.logger.warn('No boot file specified. Skipping registering.');
+            boot.next(Events.status, Status.registered);
+            return;
+        }
+
+        try {
+            const bootFunction = bootFile['default'];
+
+            if (!bootFunction) {
+                throw new Error('Could not start default boot function. Did you use module.exports correctly?');
+            }
+
+            await bootFunction();
+        } catch (e) {
+            store.logger.error(e.toString());
+            boot.debug(e.toString());
+            process.exit(1);
+        }
+
+        boot.next(Events.status, Status.registered);
     };
 
     // run the cli tool

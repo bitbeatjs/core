@@ -4,6 +4,7 @@ import { RunParameters, Input, Inputs } from './action';
 import ActionMiddleware from './middlewares/actionMiddleware';
 import Boot from './boot';
 import BaseStructure from './baseStructure';
+import Cli from './cli';
 import Configuration from './config';
 import Connector from './connector';
 import Connection from './connection';
@@ -65,6 +66,7 @@ export {
     Configuration,
     DirectorySettings,
     Config,
+    Cli,
     Initializer,
     Action,
     Server,
