@@ -1,5 +1,6 @@
 {
   "name": "@bitbeat/core",
+  "description": "The core package of bitbeat.",
   "version": "0.0.1",
   "main": "bin/index.js",
   "author": "Oliver Freudrich <info@oliverfreudrich.com> (https://oliverfreudrich.com)",
