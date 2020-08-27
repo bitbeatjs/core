@@ -1,11 +1,16 @@
 {
   "name": "@bitbeat/core",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "bin/index.js",
   "author": "Oliver Freudrich <info@oliverfreudrich.com> (https://oliverfreudrich.com)",
   "license": "MIT",
   "private": false,
   "typings": "./index.d.ts",
+  "repository": "bitbeatjs/core",
+  "bugs": {
+    "url": "https://github.com/bitbeatjs/core/issues"
+  },
+  "homepage": "https://github.com/bitbeatjs/core",
   "scripts": {
     "start": "node ./bin/index.js start",
     "dev": "node --inspect bin/index.js start",
@@ -78,8 +83,5 @@
   },
   "engines": {
     "node": ">=10"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npm.oliverfreudrich.com/"
   }
 }
