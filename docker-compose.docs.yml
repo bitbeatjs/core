@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  bitbeat:
+    container_name: "bitbeat"
+    build:
+      context: .
+      dockerfile: ./docker/docs/Dockerfile
+    command: npm run serve:docs
+    ports:
+      - "3000:3000"

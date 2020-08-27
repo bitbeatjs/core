@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  bitbeat:
+    container_name: "bitbeat"
+    build:
+      context: .
+      dockerfile: ./docker/core/Dockerfile
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    command: npm run start
+  redis:
+    container_name: "bitbeat-redis"
+    image: redis:latest
+    ports:
+      - "9999:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

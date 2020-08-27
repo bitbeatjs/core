@@ -1,0 +1,10 @@
+node_modules
+*.js
+!gulpfile.js
+!*.config.js
+bitbeat.config.js
+log/*
+.idea
+!.eslintrc.js
+node_modules_bak
+*.d.ts

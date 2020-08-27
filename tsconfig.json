@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "declaration": true,
+    "allowJs": true,
+    "module": "commonjs",
+    "target": "es6",
+    "lib": ["es2017"],
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "types": ["node"],
+    "resolveJsonModule": true
+  },
+  "files": [
+    "./index.ts",
+    "./bin/index.ts",
+    "./bitbeat.config.ts"
+  ],
+  "exclude": [
+    "./node_modules"
+  ],
+  "include": [
+    "./__core__",
+    "./__tests__",
+    "./actions",
+    "./initializers",
+    "./connectors",
+    "./config",
+    "./middlewares",
+    "./servers",
+    "./tasks",
+    "./utils",
+    "./locales"
+  ]
+}

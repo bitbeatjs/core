@@ -1,0 +1,10 @@
+**/node_modules
+*.ts
+.prettierrc
+tsconfig.json
+.eslintrc.js
+.eslintignore
+.gitignore
+.git
+docker-compose*.yml
+docker/**/Dockerfile
