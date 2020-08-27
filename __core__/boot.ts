@@ -116,7 +116,7 @@ class Boot extends StateSubscriber {
                 logLevel: this.logLevel,
             }) as Store);
 
-        if (Boot.getEnvVar('DEBUG', true)) {
+        if (Boot.getEnvVar('BITBEAT_DEBUG', true)) {
             debug.enable(`${this.name}:*`);
         }
 
