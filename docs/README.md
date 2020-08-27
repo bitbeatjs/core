@@ -106,7 +106,7 @@ import { registerBulk, getInstance } from '@bitbeat/core';
 import {
     WebServer,
     WebServerConfig,
-} from 'bitbeat-web';
+} from '@bitbeat/web';
 
 (async () => {
     await registerBulk(
@@ -336,7 +336,7 @@ The `registerBulk` function takes a Set of instances as params, not an array to 
 
 ```typescript
 import { register, registerBulk, Server } from '@bitbeat/core';
-import { WebAction } from 'bitbeat-web';
+import { WebAction } from '@bitbeat/web';
 
 export default class Test extends Server {
     async start() {
