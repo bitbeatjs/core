@@ -1,0 +1,2 @@
+# BITBEAT
+To provide you the best documentation visualization go to [the official documentation page](https://bitbeat.projects.oliverfreudrich.com). Else you can have a look in the [docs folder](https://github.com/bitbeatjs/core/tree/master/docs).
