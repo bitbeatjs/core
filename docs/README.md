@@ -1040,7 +1040,7 @@ export default class TestTask extends Task {
 ### Can I use .js instead of .ts?
 
 Of course, you can. Everything is build up on Typescript to make maintainability easier, but the files which are loaded are .js files.<br>
-That means if you want to skip the compilation step, it's fine. Just make sure, you are exporting 'default' the class you are creating.
+That means if you want to skip the compilation step, it's fine. Just make sure, you are exporting the class you are creating like shown in the typescript examples.
 
 ----
 
