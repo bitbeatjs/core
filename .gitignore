@@ -8,3 +8,4 @@ log/*
 !.eslintrc.js
 node_modules_bak
 *.d.ts
+.npmrc
