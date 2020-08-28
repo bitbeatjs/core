@@ -48,7 +48,7 @@ The easiest way to generate a bitbeat project is by using the yeoman generator.<
 To do so, install yeoman with `npm i -g yo` or `yarn global add yo` and install the generator by using `npm i -g generator-bitbeat` or `yarn global add generator-bitbeat`. Then run `yo bitbeat`.<br>
 This will guide you through the process of generating a project structure and install the packages for you.
 
-<img src="./generator.gif" alt="Use the generator" width="800"/><br>
+<a href="https://asciinema.org/a/TK8RXDvmZTdViZ4Zp0Nkxhsks" target="_blank"><img src="https://asciinema.org/a/TK8RXDvmZTdViZ4Zp0Nkxhsks.svg" /></a>
 
 ----
 
@@ -134,20 +134,19 @@ If you use Typescript, you should run initially the `npm run watch` command, whi
 
 !> The reason why there is no real building pipe with gulp generated is, that mostly you just this basic building with `tsc` to build files. If you need it, you can copy the examples from the core package repo.
 
-<img src="./watch.gif" alt="Watch the bitbeat files" width="800"/><br>
+<a href="https://asciinema.org/a/oYppkYjHhmpsR2sTdYfTIwdTP" target="_blank"><img src="https://asciinema.org/a/oYppkYjHhmpsR2sTdYfTIwdTP.svg" /></a>
 
 #### 2. Start the framework
 After the compiling, you can start the core by using `npm run start` and start developing your structures and do cool stuff.<br>
 <br>
-<img src="./run.gif" alt="Start the bitbeat" width="800"/><br>
+<a href="https://asciinema.org/a/wMUYTSJtCCb4Y4Pg0GZ6okAYo" target="_blank"><img src="https://asciinema.org/a/wMUYTSJtCCb4Y4Pg0GZ6okAYo.svg" /></a>
 
-!> This is a plain core boot up done on Ubuntu Linux 64-bit. The boot up time may change, depending on the system you are using.
+!> This is a boot up done on Ubuntu Linux 64-bit. The boot up time may change, depending on the system you are using and the modules included.
 
 #### 3. Restarts only the necessary things on each change
 After each change, the core should reboot depending on what structure you have changed. In this example, I have changed a task instance and added a log for each run.<br>
 <br>
-<img src="./change.gif" alt="Reloads after each change of an instance" width="800"/><br>
-### Environment variables
+<a href="https://asciinema.org/a/F60DZJKVqNnDaYpKzJWafWuUg" target="_blank"><img src="https://asciinema.org/a/F60DZJKVqNnDaYpKzJWafWuUg.svg" /></a>
 
 #### Node env
 
@@ -215,7 +214,7 @@ Set this variable to true, to use the advantages of [debug](https://github.com/v
 
 `BITBEAT_DEBUG=true` or `BITBEAT_DEBUG=1`
 
-<img src="./debugRun.gif" alt="Debug the bitbeat" width="800"/><br>
+<a href="https://asciinema.org/a/xAlkxi8EzLdw6i8JhRP27C9w3" target="_blank"><img src="https://asciinema.org/a/xAlkxi8EzLdw6i8JhRP27C9w3.svg" /></a>
 
 ----
 
