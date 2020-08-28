@@ -132,7 +132,7 @@ To get detailed information about each package, please watch the documentation i
 #### 1. File watching for .ts files (only when using typescript)
 If you use Typescript, you should run initially the `npm run watch` command, which will compile all the files to js files. You should keep this command running as long as you are developing, to ensure each change in the Typescript files gets compiled.<br>
 
-!> The reason why there is no real building pipe with gulp generated is, that mostly you just this basic building with `tsc` to build files.
+!> The reason why there is no real building pipe with gulp generated is, that mostly you just this basic building with `tsc` to build files. If you need it, you can copy the examples from the core package repo.
 
 <img src="./watch.gif" alt="Watch the bitbeat files" width="800"/><br>
 
