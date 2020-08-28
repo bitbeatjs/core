@@ -89,7 +89,7 @@ class Boot extends StateSubscriber {
         const scopedDebugger = debug(`${this.name}:${name}`);
 
         if (Boot.getEnvVar('BITBEAT_DEBUG', true)) {
-            debug.enable(`${this.name}:*`);
+            debug.enable(Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') || `${this.name}:*`);
         }
 
         return scopedDebugger;
