@@ -105,7 +105,7 @@ export default class Store extends StateSubscriber {
                 name: packageName,
                 level: process.env.LOG_LEVEL || config.logLevel,
                 timestamp: pino.stdTimeFunctions.epochTime,
-                prettyPrint: process.env.NODE_ENV !== 'production' || !Boot.getEnvVar('LOG_DISABLE_PRETTY_PRINT', true),
+                prettyPrint: process.env.NODE_ENV !== 'production' && !Boot.getEnvVar('LOG_DISABLE_PRETTY_PRINT', true),
             });
         }
     }
