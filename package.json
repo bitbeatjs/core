@@ -25,7 +25,8 @@
     "test:production": "ava --config ava.production.config.js",
     "test:watch": "ava --watch",
     "build:docs": "npx docsify init ./docs",
-    "serve:docs": "npx docsify serve ./docs"
+    "serve:docs": "npx docsify serve ./docs",
+    "prepublish": "npm run build"
   },
   "dependencies": {
     "chokidar": "^3.4.2",
