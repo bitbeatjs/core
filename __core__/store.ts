@@ -12,10 +12,11 @@ import { resolve, join } from 'path';
 import { Status, BaseStructure, Constructor, Task, Config, Boot } from "./index";
 import * as Types from './index';
 import { filter } from 'lodash';
-import { Debugger, debug } from 'debug';
+import { Debugger } from 'debug';
 import { ScheduledTask } from 'node-cron';
 import { createWriteStream, WriteStream } from 'fs';
 import { PassThrough } from 'stream';
+import { boot } from '../bin';
 
 export default class Store extends StateSubscriber {
     private readonly loggingStream?: WriteStream;
@@ -50,8 +51,7 @@ export default class Store extends StateSubscriber {
         language?: string;
     }) {
         super();
-        this.debug = debug(`${config.prefix}:store`);
-        debug.disable();
+        this.debug = boot.generateDebugger('store');
         this.bootDirectories = config.config.directories;
 
         if (!config.logLevel) {

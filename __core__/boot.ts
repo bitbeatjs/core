@@ -54,8 +54,7 @@ class Boot extends StateSubscriber {
         }
 
         // create the debug
-        this.debug = debug(`${this.name}:boot`);
-        debug.disable();
+        this.debug = this.generateDebugger('boot');
 
         this.ips = reduce(
             Object.values(Boot.getIPs()),
@@ -81,6 +80,19 @@ class Boot extends StateSubscriber {
             this.logLevel =
                 options.logLevel || (process.env.LOG_LEVEL as string);
         }
+    }
+
+    /**
+     * This will generate you an instance of a debugger in the namespace of the core.
+     */
+    public generateDebugger(name: string): Debugger {
+        const scopedDebugger = debug(`${this.name}:${name}`);
+
+        if (Boot.getEnvVar('BITBEAT_DEBUG', true)) {
+            debug.enable(`${this.name}:*`);
+        }
+
+        return scopedDebugger;
     }
 
     /**
@@ -115,10 +127,6 @@ class Boot extends StateSubscriber {
                 instanceName: this.name,
                 logLevel: this.logLevel,
             }) as Store);
-
-        if (Boot.getEnvVar('BITBEAT_DEBUG', true)) {
-            debug.enable(`${this.name}:*`);
-        }
 
         this.store.debug('Created store.');
         await this.store.init();
