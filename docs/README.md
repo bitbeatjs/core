@@ -239,7 +239,7 @@ Often you want to add your own variables like e.g. connections for the server or
 ----
 
 ### Functions
-!> Each function is either returning an instance, `undefined` or a Set of instances. You will never get back an array.
+!> Each function for instances is either returning an instance, `undefined` or a Set of instances. You will never get back an array.
 
 #### getInstance
 
@@ -379,6 +379,33 @@ export default class Test extends Server {
     async start() {
         // get all instances, for whatever purpose
         const instances = getAllInstances();
+    }
+}
+```
+
+----
+
+#### generateDebugger
+The easiest way to generate a debugger in the way the core package and the modules are generating it, is to use this function.<br>
+It will return an instance of the debugger and will enable it if the environment variable is set. The common way is to create the debugger in the `configure` cycle, to just create it once and not on each reboot.
+
+```typescript
+import { Server, boot } from '@bitbeat/core';
+import { Debugger } from 'debug';
+
+export default class Test extends Server {
+    debug: Debugger | any;
+
+    async configure(): Promise<void> {
+        this.debug = boot.generateDebugger(this.name);
+    }
+
+    async start() {
+        this.debug(`${this.name} started.`);
+    }
+
+    async stop() {
+        this.debug(`${this.name} stopped.`);
     }
 }
 ```
