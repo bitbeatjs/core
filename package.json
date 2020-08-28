@@ -1,7 +1,7 @@
 {
   "name": "@bitbeat/core",
   "description": "The core package of bitbeat.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "index.js",
   "author": "Oliver Freudrich <info@oliverfreudrich.com> (https://oliverfreudrich.com)",
   "license": "MIT",
