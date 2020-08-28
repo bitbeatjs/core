@@ -209,9 +209,9 @@ Now sometimes you don't want to set the `LOG_LEVEL=debug` to debug the applicati
 Also if you are at production stages, it is sometimes impossible to use a real debugger.<br>
 Set this variable to true, to use the advantages of [debug](https://github.com/visionmedia/debug) to show you all debug logs and performances at once.<br>
 
-!> Each package has its own debug instance to make the output as detailed as possible.
+!> Each package has its own debug instance to make the output as detailed as possible. The name is `BITBEAT_DEBUG`, cause `DEBUG` is too general and will clash with others.
 
-`DEBUG=true` or `DEBUG=1`
+`BITBEAT_DEBUG=true` or `BITBEAT_DEBUG=1`
 
 <img src="./debugRun.gif" alt="Debug the bitbeat" width="800"/><br>
 
