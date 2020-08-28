@@ -147,7 +147,7 @@ class Boot extends StateSubscriber {
     /**
      * Get an environment variable parsed.
      */
-    static getEnvVar(name: string, convertToBoolean = false): any {
+    public static getEnvVar(name: string, convertToBoolean = false): any {
         name = name.toUpperCase();
 
         if (!~name.toLowerCase().indexOf('bitbeat') && (process.env.BITBEAT_SCOPED?.toLowerCase() === 'true' || process.env.BITBEAT_SCOPED === '1')) {
@@ -162,7 +162,13 @@ class Boot extends StateSubscriber {
             return (process.env[name]?.toLowerCase() === 'true' || process.env[name] === '1');
         }
 
-        return JSON.parse(process.env[name] || '');
+        let value = process.env[name] || '';
+        try {
+            value = JSON.parse(value);
+        } catch (e) {
+            // don't do anything;
+        }
+        return value;
     }
 
     /**
