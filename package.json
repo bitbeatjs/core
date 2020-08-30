@@ -26,7 +26,7 @@
     "test:watch": "ava --watch",
     "build:docs": "npx docsify init ./docs",
     "serve:docs": "npx docsify serve ./docs",
-    "prepare": "npm run build"
+    "prepare": "npm run build && npm run test && npm run test:production"
   },
   "dependencies": {
     "chokidar": "^3.4.2",
@@ -76,10 +76,14 @@
   },
   "lint-staged": {
     "*.ts": [
+      "npm run test",
+      "npm run test:production",
       "npm run lint",
       "prettier --write"
     ],
     "*.{js,css,md}": [
+      "npm run test",
+      "npm run test:production",
       "prettier --write"
     ]
   },

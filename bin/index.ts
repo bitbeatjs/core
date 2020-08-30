@@ -31,7 +31,7 @@ let boot: Boot,
 
     // the basic init boot function to export always the update
     const initBoot = async (configPath: string) => {
-        boot = new Boot() as Boot;
+        boot = new Boot();
         await boot.init(undefined, configPath ? {
             configPath,
         } : undefined);
