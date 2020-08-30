@@ -42,9 +42,9 @@ interface Config {
 }
 
 interface DirectorySettings {
-    type: typeof BaseStructure;
+    type: any;
     path: string;
-    dependencies: Set<typeof BaseStructure>;
+    dependencies: Set<any>;
     statusName?: string;
     run: boolean;
     start: boolean;

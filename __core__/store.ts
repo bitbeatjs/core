@@ -215,7 +215,7 @@ export default class Store extends StateSubscriber {
      */
     public linkInstances<Constr extends Constructor>(
         name: string,
-        instances: Set<InstanceType<Constr>> | typeof BaseStructure[]
+        instances: Set<InstanceType<Constr>> | BaseStructure[]
     ): void {
         [...instances].forEach((instance: any) => {
             (this as any)[name][
@@ -475,7 +475,7 @@ export default class Store extends StateSubscriber {
     public getInstanceByName(
         name: string,
         version = -1
-    ): InstanceType<typeof BaseStructure> | undefined {
+    ): BaseStructure | undefined {
         const items = filter([...this.instances], (item) => item.name === name) as BaseStructure[];
 
         if (!items.length) {
@@ -505,7 +505,7 @@ export default class Store extends StateSubscriber {
         }
 
         this.debug(`Found instance '${instance.name}'.`);
-        return instance;
+        return instance as BaseStructure;
     }
 
     /**
@@ -551,7 +551,7 @@ export default class Store extends StateSubscriber {
      */
     public registerInstanceFromPath<Constr extends Constructor>(
         path: string
-    ): typeof BaseStructure {
+    ): BaseStructure {
         if (!this.cache.simple._fileMap[path]) {
             throw new Error(
                 'Could not find instance. Have you added it first?'
@@ -567,14 +567,14 @@ export default class Store extends StateSubscriber {
     /**
      * Get a class by giving in the same name as the class has.
      */
-    public getClassByName(name: string): typeof BaseStructure {
+    public getClassByName(name: string): BaseStructure {
         return (Types as any)[name];
     }
 
     /**
      * Add an instance to the file map.
      */
-    addInstanceToFileMap(path: string, instance: typeof BaseStructure): void {
+    addInstanceToFileMap(path: string, instance: BaseStructure): void {
         this.cache.simple._fileMap[path] = instance;
     }
 
@@ -588,14 +588,14 @@ export default class Store extends StateSubscriber {
     /**
      * Delete an instance from the registered map.
      */
-    deleteInstanceFromRegisterMap(instance: typeof BaseStructure): void {
+    deleteInstanceFromRegisterMap(instance: BaseStructure): void {
         this.cache.simple._changedRegistered.delete(instance);
     }
 
     /**
      * Get an instance from a file map.
      */
-    getInstanceFromFileMap(path: string): typeof BaseStructure | undefined {
+    getInstanceFromFileMap(path: string): BaseStructure | undefined {
         return this.cache.simple._fileMap[path];
     }
 

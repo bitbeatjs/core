@@ -45,4 +45,16 @@ export default class BaseStructure extends StateSubscriber {
      * that all instances are completely available and provided
      */
     public async initialize(): Promise<void> {}
+
+    /**
+     * Use this method to close something before it's getting recycled. Use it to close stuff
+     * opened in initialize or provide for each cycle.
+     */
+    public async close(): Promise<void> {}
+
+    /**
+     * Use this method to destroy something once before it gets unloaded
+     * like closing things which were opened in configure.
+     */
+    public async destroy(): Promise<void> {}
 }

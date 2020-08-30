@@ -235,7 +235,11 @@ class Boot extends StateSubscriber {
             this.next(Events.status, Status.shutdown);
             store.logger.info('Shutting down...');
             this.debug('Stopping boot.');
-            await this.stop(store);
+            await this.stop(store, false);
+            await Throttle.all([...store.getAllInstances()]
+              .map((instance) => async () =>
+                instance.destroy()));
+            await this.removeAllFromFileCache(store);
             this.debug('Stopped boot.');
             store.clearInstances();
 
@@ -716,7 +720,7 @@ class Boot extends StateSubscriber {
             );
             await Throttle.all(
                 directories.map((dir) => async () => {
-                    const instances = store.getInstancesOfType(dir.type);
+                    const instances = store.getInstancesOfType(dir.type as any);
                     await this.stopInstances(instances, dir, store);
                 }),
                 {
@@ -728,7 +732,7 @@ class Boot extends StateSubscriber {
                 store.unsubscribeAll('register');
             }
 
-            await this.cleanUp(store, stopDirectories);
+            await this.cleanUp(store, stopDirectories, isReboot);
 
             // init the start and general states
             const directoryNames = Object.keys(this.config.directories);
@@ -749,26 +753,52 @@ class Boot extends StateSubscriber {
 
     private async cleanUp(
         store: Store = this.store,
-        cleanUpDirectories?: Set<DirectorySettings>
+        cleanUpDirectories?: Set<DirectorySettings>,
+        isReboot = false,
     ): Promise<void> {
         const directories = cleanUpDirectories
             ? [...cleanUpDirectories]
-            : Object.values(this.config.directories).filter(
-                  (dir) => dir.start
-              );
+            : Object.values(this.config.directories);
 
         store.stopAllScheduledTasks();
         store.clearScheduledTasks();
 
-        // unload
+        // unload all instances by directory
         await Throttle.all(
             directories.map((dir) => async () => {
-                const instances = store.getInstancesOfType(dir.type);
-                store.removeInstances(instances);
+                const instances = store.getInstancesOfType(dir.type as any);
+                await Throttle.all([...instances].map((instance) => async () => instance.close()));
+
+                if (isReboot) {
+                    store.removeInstances(instances);
+                }
             }),
             {
                 maxInProgress: 1,
             }
+        );
+
+        await Throttle.all(
+          [...store.cache.simple._changedFiles]
+            .map((file) => async () => {
+                const instance = store.getInstanceFromFileMap(file);
+                await this.removeFromFileCache(file, store);
+
+                if (!instance) {
+                    return;
+                }
+
+                await instance.destroy();
+                store.deleteInstanceFromFileMap(file);
+            })
+        );
+
+        await Throttle.all(
+          [...store.cache.simple._changedRegistered]
+            .map((instance) => async () => {
+                await instance.destroy();
+                store.deleteInstanceFromRegisterMap(instance);
+            })
         );
     }
 
@@ -790,7 +820,7 @@ class Boot extends StateSubscriber {
         );
         await Throttle.all(
             directories.map((dir) => async () => {
-                const instances = store.getInstancesOfType(dir.type);
+                const instances = store.getInstancesOfType(dir.type as any);
                 await this.initializeInstances(instances, dir, store);
             }),
             {
@@ -799,7 +829,7 @@ class Boot extends StateSubscriber {
         );
         await Throttle.all(
             directories.map((dir) => async () => {
-                const instances = store.getInstancesOfType(dir.type);
+                const instances = store.getInstancesOfType(dir.type as any);
                 await this.startInstances(instances, dir, store);
                 await this.runInstances(instances, dir, store);
             }),
@@ -812,16 +842,16 @@ class Boot extends StateSubscriber {
     private async loadInstancesOfDirectory(
         dir: DirectorySettings,
         store: Store = this.store
-    ): Promise<Set<typeof BaseStructure>> {
+    ): Promise<Set<BaseStructure>> {
         const instances = await this.loadSimple(dir, store, true);
         await this.provideInstances(instances, dir, store);
         return instances;
     }
 
     private async loadInstancesOfType(
-        type: typeof BaseStructure,
+        type: BaseStructure,
         store: Store = this.store
-    ): Promise<Set<typeof BaseStructure>> {
+    ): Promise<Set<BaseStructure>> {
         const dir = this.getDirectoryByType(type);
 
         if (!dir) {
@@ -849,7 +879,7 @@ class Boot extends StateSubscriber {
         // restart the dependency tree
         const instanceTypes: Set<DirectorySettings> = new Set();
         const addChangedInstancesToTree = (
-            instance: typeof BaseStructure
+            instance: BaseStructure
         ) => {
             const baseDir = this.getDirectoryByType(instance);
             if (!baseDir) {
@@ -889,11 +919,9 @@ class Boot extends StateSubscriber {
             }
 
             addChangedInstancesToTree(instance);
-            store.deleteInstanceFromFileMap(filePath);
         });
         [...store.cache.simple._changedRegistered].forEach((instance) => {
             addChangedInstancesToTree(instance);
-            store.deleteInstanceFromRegisterMap(instance);
         });
 
         // sort the structures with the most dependencies to the beginning and get it to restart all of them
@@ -904,30 +932,30 @@ class Boot extends StateSubscriber {
     }
 
     private getDirectoryByType(
-        type: typeof BaseStructure
+        type: BaseStructure
     ): DirectorySettings | undefined {
         return Object.values(this.config.directories).find(
-            (dir) => dir.type === type || type instanceof dir.type
+            (dir) => dir.type === type || type instanceof (dir.type as any)
         );
     }
 
     private getDependencies(
-        type: typeof BaseStructure
-    ): Set<typeof BaseStructure> | undefined {
+        type: BaseStructure
+    ): Set<BaseStructure> | undefined {
         const dir = this.getDirectoryByType(type);
         return dir?.dependencies;
     }
 
     private getDependents(
-        type: typeof BaseStructure
-    ): Set<typeof BaseStructure> {
+        type: BaseStructure
+    ): Set<BaseStructure> {
         const dirs = Object.values(this.config.directories);
-        const structures: Set<typeof BaseStructure> = new Set();
+        const structures: Set<BaseStructure> = new Set();
         dirs.forEach((dir) => {
             if (
                 dir.type !== type &&
                 (~[...dir.dependencies].indexOf(type) ||
-                    [...dir.dependencies].filter((dep) => type instanceof dep)
+                    [...dir.dependencies].filter((dep) => type instanceof (dep as any))
                         .length)
             ) {
                 structures.add(dir.type);
@@ -966,7 +994,7 @@ class Boot extends StateSubscriber {
         dir: DirectorySettings,
         store: Store = this.store,
         cache = false
-    ): Promise<Set<typeof BaseStructure>> {
+    ): Promise<Set<BaseStructure>> {
         const path = this.resolvePath(dir.path);
         const files = await this.getFiles(path, store);
         const instances = await this.loadFiles(files, store, cache);
@@ -1028,25 +1056,38 @@ class Boot extends StateSubscriber {
         return getFilesFromDir(path);
     }
 
-    private removeFromFileCache(
+    private async removeFromFileCache(
         fileName: string,
         store: Store = this.store
-    ): void {
-        if (!store.cache.simple._changedFiles.size) {
+    ): Promise<void> {
+        delete require.cache[require.resolve(fileName)];
+        this.debug(`Removed '${fileName}' from file cache.`);
+    }
+
+    private async removeAllFromFileCache(
+      store: Store = this.store
+    ): Promise<void> {
+        if (!Object.keys(store.cache.simple._fileMap).length) {
             return;
         }
 
-        delete require.cache[require.resolve(fileName)];
+        await Throttle.all(
+          Object.keys(store.cache.simple._fileMap)
+            .map((path) => async () => this.removeFromFileCache(
+              path,
+              store
+            ))
+        );
     }
 
     private async loadFile(
         fileName: string,
         store: Store = this.store,
         cache = false
-    ): Promise<Set<typeof BaseStructure>> {
+    ): Promise<Set<BaseStructure>> {
         try {
             if (!cache) {
-                this.removeFromFileCache(fileName, store);
+                await this.removeFromFileCache(fileName, store);
             }
 
             const formatItem = (item: any) => {
@@ -1099,8 +1140,8 @@ class Boot extends StateSubscriber {
         files: string[],
         store: Store = this.store,
         cache = false
-    ): Promise<Set<typeof BaseStructure>> {
-        let instances: typeof BaseStructure[] = [];
+    ): Promise<Set<BaseStructure>> {
+        let instances: BaseStructure[] = [];
 
         await Throttle.all(
             files.map((fileName) => async () => {
@@ -1118,7 +1159,6 @@ class Boot extends StateSubscriber {
         let delayTimer: NodeJS.Timer | undefined;
         const handler = async (path: string) => {
             store.cache.simple._changedFiles.add(path);
-            this.removeFromFileCache(path, store);
 
             // delay the reload for some milliseconds to prevent multiple quick reloads
             clearTimeout(delayTimer as NodeJS.Timer);
