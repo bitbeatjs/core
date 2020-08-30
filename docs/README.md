@@ -249,7 +249,7 @@ This function will be loaded once, when the instance gets loaded from the file s
 The opposite of this function is the [destroy](#destroy) function.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
@@ -270,7 +270,7 @@ This will also run after each instance type loading, which means e.g. you can ac
 The opposite of this function is the [close](#close) function.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
@@ -290,7 +290,7 @@ The initialize function is similar to the [provide](#provide) function, but runs
 The opposite of this function is the [close](#close) function.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
@@ -310,7 +310,7 @@ This function will run each time bitbeat reboots. It's intended to close open co
 The opposite of this function is the [provide](#provide) or [initialize](#initialize) function.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
@@ -330,7 +330,7 @@ This function will run once the instance gets completely destroyed. It's intende
 The opposite of this function is the [configure](#configure) function.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
@@ -349,7 +349,7 @@ This function is available for the following types: [Actions](#actions) and [Tas
 It will run each time the task runs or you are triggering an action.
 
 ```typescript
-import { getInstanceByName, Task } from '@bitbeat/core';
+import { Task } from '@bitbeat/core';
 
 export default class Test extends Task {
     constructor() {
@@ -370,7 +370,7 @@ This function is available for the following types: [Connectors](#connectors), [
 It will define what to do, when the server starts.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
@@ -390,7 +390,7 @@ This function is available for the following types: [Connectors](#connectors), [
 It will define what to do, when the server stops.
 
 ```typescript
-import { getInstanceByName, Server } from '@bitbeat/core';
+import { Server } from '@bitbeat/core';
 
 export default class Test extends Server {
     constructor() {
