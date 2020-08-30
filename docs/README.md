@@ -240,9 +240,173 @@ Often you want to add your own variables like e.g. connections for the server or
 ----
 
 ### Functions
+#### Local functions
+These are the functions available in each instance or in specific types of instances.
+
+##### General
+###### configure
+This function will be loaded once, when the instance gets loaded from the file system. As long as that file doesn't change, or the registered instance doesn't get updated, this function won't run again.<br>
+The opposite of this function is the [destroy](#destroy) function.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async configure() {
+        console.log('Hey I will run only if the physical file or registered instance has changed.');
+    }
+}
+```
+
+----
+
+###### provide
+The provide function has a similar intense like the [configure](#configure) function, but this will run each time for each instance when bitbeat reboots.<br>
+This will also run after each instance type loading, which means e.g. you can access a configuration from a utility but not the other way around. To do so, use the [initialize](#initialize) function.
+The opposite of this function is the [close](#close) function.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async provide() {
+        console.log('Hey I will run always if the physical file or registered instance type has changed.');
+    }
+}
+```
+
+----
+
+###### initialize
+The initialize function is similar to the [provide](#provide) function, but runs after each instance is loaded up, which means you can access each kind of instance from the other.<br>
+The opposite of this function is the [close](#close) function.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async initialize() {
+        console.log('Hey I will run always if the physical file or registered instance type has changed.');
+    }
+}
+```
+
+----
+
+###### close
+This function will run each time bitbeat reboots. It's intended to close open connections done in provide or initialize.<br>
+The opposite of this function is the [provide](#provide) or [initialize](#initialize) function.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async close() {
+        console.log('Hey I will run always if the physical file or registered instance type has changed.');
+    }
+}
+```
+
+----
+
+###### destroy
+This function will run once the instance gets completely destroyed. It's intended to close open connections done in configure.<br>
+The opposite of this function is the [configure](#configure) function.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async destroy() {
+        console.log('Hey I will run only if the physical file or registered instance has changed.');
+    }
+}
+```
+
+##### Specific
+###### run
+This function is available for the following types: [Actions](#actions) and [Tasks](#tasks).<br>
+It will run each time the task runs or you are triggering an action.
+
+```typescript
+import { getInstanceByName, Task } from '@bitbeat/core';
+
+export default class Test extends Task {
+    constructor() {
+        super();
+        this.schedule = '* * * * * *';
+    }
+
+    async run() {
+        console.log('This log will be shown each second.');
+    }
+}
+```
+
+----
+
+###### start
+This function is available for the following types: [Connectors](#connectors), [Initializers](#initializers) and [Servers](#servers).<br>
+It will define what to do, when the server starts.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async start() {
+        console.log('Started test server.');
+    }
+}
+```
+
+----
+
+###### stop
+This function is available for the following types: [Connectors](#connectors), [Initializers](#initializers) and [Servers](#servers).<br>
+It will define what to do, when the server stops.
+
+```typescript
+import { getInstanceByName, Server } from '@bitbeat/core';
+
+export default class Test extends Server {
+    constructor() {
+        super();
+    }
+
+    async stop() {
+        console.log('Stopped test server.');
+    }
+}
+```
+
+#### Global functions
 !> Each function for instances is either returning an instance, `undefined` or a Set of instances. You will never get back an array.
 
-#### getInstance
+##### getInstance
 
 The main function you will need is the `getInstance` function. With that, you will be able to fetch a created instance of a class by its type.<br>
 Optionally you can put in the name and/or version, to set it to a fixed one, e.g. `getInstance(TestClass, 1)` will always return the version 1 of that instance, while just `getInstance(TestClass)` will always return the latest.
@@ -297,7 +461,7 @@ export default class Test extends Server {
 ```
 ----
 
-#### getInstanceByName
+##### getInstanceByName
 
 If you don't want to import the class or the root class itself in the file, you can use the `getInstanceByName` function. It works similar to the `getInstance` function, but needs a name of an instance instead of the class (and the name).<br>
 
@@ -313,7 +477,7 @@ export default class Test extends Server {
 
 ----
 
-#### getInstancesOfType
+##### getInstancesOfType
 
 Sometimes you need to retrieve all instances of a type, e.g. for a server and its special actions. This will return a Set of instances.
 
@@ -330,7 +494,7 @@ export default class Test extends Server {
 
 ----
 
-#### register / registerBulk
+##### register / registerBulk
 
 Now there are cases, where you don't want to create a physical file for an instance. For those cases, there is the `register` and `registerBulk` function.
 The `registerBulk` function takes a Set of instances as params, not an array to ensure a pre-unification.
@@ -369,7 +533,7 @@ This principal will be also used in the boot.ts for each project. There you can 
 
 ----
 
-#### getAllInstances
+##### getAllInstances
 
 In some edge cases, you may need to get all instances which are existing. For those cases, there is the `getAllInstances` function, which will return a Set of instances.
 
@@ -386,7 +550,7 @@ export default class Test extends Server {
 
 ----
 
-#### generateDebugger
+##### generateDebugger
 The easiest way to generate a debugger in the way the core package and the modules are generating it, is to use this function.<br>
 It will return an instance of the debugger and will enable it if the environment variable is set. The common way is to create the debugger in the `configure` cycle, to just create it once and not on each reboot.
 
