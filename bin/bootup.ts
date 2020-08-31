@@ -15,7 +15,9 @@ let boot: Boot,
     getInstancesOfType: Store['getInstancesOfType'],
     getClassByName: Store['getClassByName'],
     register: Store['register'],
-    registerBulk: Store['registerBulk'];
+    unregister: Store['unregister'],
+    registerBulk: Store['registerBulk'],
+    registerUpdate: Store['registerUpdate'];
 
 export default async (): Promise<void> => {
     // check the package version
@@ -43,7 +45,9 @@ export default async (): Promise<void> => {
         getAllInstances = store.getAllInstances.bind(store);
         getInstancesOfType = store.getInstancesOfType.bind(store);
         register = store.register.bind(store);
+        unregister = store.unregister.bind(store);
         registerBulk = store.registerBulk.bind(store);
+        registerUpdate = store.registerUpdate.bind(store);
         getClassByName = store.getClassByName.bind(store);
         getInstanceByName = store.getInstanceByName.bind(store);
 
@@ -106,4 +110,6 @@ export {
     getInstanceByName,
     register,
     registerBulk,
+    unregister,
+    registerUpdate
 };
