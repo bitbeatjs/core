@@ -536,6 +536,56 @@ This principal will be also used in the boot.ts for each project. There you can 
 
 ----
 
+##### unregister / unregisterBulk
+
+Sometimes you need to unregister registered instances again. To do so, use either the `unregister` function, to only remove a single instance or `unregisterBulk`, to remove multiple.
+
+```typescript
+import { unregister, Task } from '@bitbeat/core';
+import MyConfiguration from '../config/myConfig';
+
+export default class Test extends Task {
+    async configure() {
+        const myConfiguration = getInstance(MyConfiguration);
+        await unregister(myConfiguration);
+        // this function will delay everything until the restart is done
+        await boot.awaitRegister();
+    }
+}
+```
+
+----
+
+#### registerUpdate
+
+```typescript
+import { getInstance, registerUpdate, Task, boot } from '@bitbeat/core';
+import MyServer from '../servers/myServer';
+import MyConfiguration from '../config/myConfig';
+
+export default class Test extends Task {
+    async configure() {
+        const myServer = getInstance(MyServer);
+        const myNewServer = myServer;
+        
+        if (!myServer || !myNewServer) {
+            throw new Error('Could not find server.');
+        }
+        
+        myNewServer.start = async () => {
+            const testConfig = getInstance(MyConfiguration);
+            console.log(testConfig?.value.name);
+            console.log('Started.');
+        };
+        await registerUpdate(myServer, myNewServer);
+        // this function will delay everything until the restart is done
+        await boot.awaitRegister();
+    }
+}
+```
+
+---- 
+
 ##### getAllInstances
 
 In some edge cases, you may need to get all instances which are existing. For those cases, there is the `getAllInstances` function, which will return a Set of instances.
