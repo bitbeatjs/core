@@ -299,6 +299,7 @@ export default class Store extends StateSubscriber {
                 entry.createInstance
             );
             outputInstances.add(createdInstance);
+            this.debug(`Registered instance '${createdInstance.name}'.`);
         }
 
         this.next('register', outputInstances);
@@ -350,6 +351,7 @@ export default class Store extends StateSubscriber {
         }
 
         this.next('register', instances);
+        this.debug(`Unregistered bulk of instances.`);
         return instances;
     }
 
