@@ -4,7 +4,10 @@ export default interface Cache {
             [path: string]: InstanceType<Constructor>;
         };
         _changedFiles: Set<string>;
-        _changedRegistered: Set<InstanceType<Constructor>>;
+        _changedRegistered: Set<{
+            oldInstance: InstanceType<Constructor> | undefined;
+            newInstance: InstanceType<Constructor> | undefined;
+        }>;
         [key: string]: any;
     };
 }

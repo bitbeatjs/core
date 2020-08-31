@@ -254,6 +254,10 @@ export default class Store extends StateSubscriber {
             instance = new instance();
         }
 
+        if (!instance) {
+            throw new Error('Unknown instance.');
+        }
+
         if (!instance.name) {
             (instance as any).name = instance.constructor.name;
         }
@@ -265,7 +269,10 @@ export default class Store extends StateSubscriber {
         await instance.configure();
         this.registeredInstances.add(instance);
         this.linkRegistered(instance);
-        this.cache.simple._changedRegistered.add(instance);
+        this.cache.simple._changedRegistered.add({
+            newInstance: instance,
+            oldInstance: undefined,
+        });
         this.logger.debug(`Registered instance '${instance.name}'.`);
         this.debug(`Registered instance '${instance.name}'.`);
         return instance;
@@ -302,10 +309,20 @@ export default class Store extends StateSubscriber {
     /**
      * Remove an registered instance if available.
      */
-    public unregister<Constr extends Constructor>(
+    public async unregister<Constr extends Constructor>(
         instance: InstanceType<Constr>
-    ): void {
+    ): Promise<void> {
+        if (!this.registeredInstances.has(instance)) {
+            throw new Error('Not registered.');
+        }
+
+        await instance.destroy();
         this.registeredInstances.delete(instance);
+        this.linkRegistered();
+        this.cache.simple._changedRegistered.add({
+            newInstance: undefined,
+            oldInstance: instance,
+        });
         this.debug(`Unregistered instance '${instance.name}'.`);
         this.next('register', instance);
     }
@@ -318,8 +335,15 @@ export default class Store extends StateSubscriber {
         newInstance: InstanceType<Constr>,
         createInstance = false
     ): Promise<InstanceType<Constr>> {
+        if (!this.registeredInstances.has(oldInstance)) {
+            throw new Error('Not registered.');
+        }
+
+        await oldInstance.destroy();
         this.registeredInstances.delete(oldInstance);
-        return this.register(newInstance, createInstance);
+        await this.register(newInstance, createInstance);
+        this.debug(`Updated instance '${oldInstance.name}'.`);
+        return newInstance;
     }
 
     /**
@@ -358,7 +382,9 @@ export default class Store extends StateSubscriber {
         instance?: InstanceType<Constr>
     ): void {
         if (instance) {
-            if (!this.registeredInstances.has(instance)) {
+            if (!this.checkRegisteredInstance(instance)) {
+                this.logger.debug(`Instance '${instance.name}' was not found in registered.`);
+                this.debug(`Instance '${instance.name}' was not found in registered.`);
                 return;
             }
 
@@ -377,8 +403,8 @@ export default class Store extends StateSubscriber {
         for (const inst of this.registeredInstances.keys()) {
             this.instances.add(inst);
         }
-        this.logger.debug('Linked instances.');
-        this.debug('Linked instances.');
+        this.logger.debug(`Linked ${this.registeredInstances.size} instances.`);
+        this.debug(`Linked ${this.registeredInstances.size} instances.`);
     }
 
     /**
@@ -391,6 +417,10 @@ export default class Store extends StateSubscriber {
         nameOrVersion?: string | number,
         versionOrName?: number | string
     ): InstanceType<Constr> | undefined {
+        if (!type) {
+            throw new Error(`Can't fetch an instance of undefined.`);
+        }
+
         let version = -1;
         let name = '';
         let items = [...this.getInstancesOfType(type)];
@@ -534,42 +564,52 @@ export default class Store extends StateSubscriber {
     /**
      * Add an instance to the file map.
      */
-    addInstanceToFileMap(path: string, instance: BaseStructure): void {
+    public addInstanceToFileMap(path: string, instance: BaseStructure): void {
         this.cache.simple._fileMap[path] = instance;
     }
 
     /**
      * Delete an instance from the file map.
      */
-    deleteInstanceFromFileMap(path: string): void {
+    public deleteInstanceFromFileMap(path: string): void {
         delete this.cache.simple._fileMap[path];
     }
 
     /**
      * Delete an instance from the registered map.
      */
-    deleteInstanceFromRegisterMap(instance: BaseStructure): void {
-        this.cache.simple._changedRegistered.delete(instance);
+    public deleteInstanceFromRegisterMap(update: {
+        oldInstance: InstanceType<Constructor>;
+        newInstance: InstanceType<Constructor>;
+    }): void {
+        this.cache.simple._changedRegistered.delete(update);
     }
 
     /**
      * Get an instance from a file map.
      */
-    getInstanceFromFileMap(path: string): BaseStructure | undefined {
+    public getInstanceFromFileMap(path: string): BaseStructure | undefined {
         return this.cache.simple._fileMap[path];
+    }
+
+    /**
+     * Check an instance if it is registered already.
+     */
+    public checkRegisteredInstance(instance: BaseStructure): boolean {
+        return this.registeredInstances.has(instance);
     }
 
     /**
      * Register a new scheduled task.
      */
-    registerScheduledTask(task: ScheduledTask): void {
+    public registerScheduledTask(task: ScheduledTask): void {
         this.tasks.add(task);
     }
 
     /**
      * Get a scheduled task based on an instance.
      */
-    getScheduledTask(instance: Task): ScheduledTask | undefined {
+    public getScheduledTask(instance: Task): ScheduledTask | undefined {
         if (!(instance instanceof Task)) {
             return;
         }
@@ -581,7 +621,7 @@ export default class Store extends StateSubscriber {
     /**
      * Stop a scheduled task based on an instance.
      */
-    stopScheduledTask(instance: Task): ScheduledTask | undefined {
+    public stopScheduledTask(instance: Task): ScheduledTask | undefined {
         const task = this.getScheduledTask(instance);
 
         if (!task) {
@@ -597,7 +637,7 @@ export default class Store extends StateSubscriber {
     /**
      * Stop all scheduled tasks.
      */
-    stopAllScheduledTasks(): void {
+    public stopAllScheduledTasks(): void {
         [...this.tasks].forEach((task) => task.stop());
         this.debug(`Stopped all tasks.`);
     }
@@ -605,7 +645,7 @@ export default class Store extends StateSubscriber {
     /**
      * Delete a scheduled task based on an instance.
      */
-    deleteScheduledTask(instance: Task): void {
+    public deleteScheduledTask(instance: Task): void {
         const task = this.stopScheduledTask(instance);
 
         if (!task) {
@@ -621,7 +661,7 @@ export default class Store extends StateSubscriber {
     /**
      * Clear the scheduled task registry.
      */
-    clearScheduledTasks(): void {
+    public clearScheduledTasks(): void {
         [...this.tasks].forEach((task) =>
             this.deleteScheduledTask((task as any)._instance)
         );

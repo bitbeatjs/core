@@ -774,14 +774,6 @@ class Boot extends StateSubscriber {
                 store.deleteInstanceFromFileMap(file);
             })
         );
-
-        await Throttle.all(
-          [...store.cache.simple._changedRegistered]
-            .map((instance) => async () => {
-                await instance.destroy();
-                store.deleteInstanceFromRegisterMap(instance);
-            })
-        );
     }
 
     private async startup(
@@ -852,7 +844,7 @@ class Boot extends StateSubscriber {
      */
     public async restart(store: Store = this.store): Promise<void> {
         this.next(Events.status, Status.restarting);
-        this.debug(`Restarting boot.`);
+        this.debug(`Restarting boot...`);
         store.logger.info('Restarting...');
 
         // set the update time
@@ -902,9 +894,22 @@ class Boot extends StateSubscriber {
 
             addChangedInstancesToTree(instance);
         });
-        [...store.cache.simple._changedRegistered].forEach((instance) => {
-            addChangedInstancesToTree(instance);
-        });
+        await Throttle.all([...store.cache.simple._changedRegistered].map((update) => async () => {
+            if (update.oldInstance) {
+                const fetchedInstance = store.getInstance(update.oldInstance);
+
+                if (!fetchedInstance) {
+                    store.logger.debug('Unknown instance. Skipping tree.');
+                    return;
+                }
+
+                await store.unregister(update.oldInstance);
+            }
+
+            if (update.newInstance) {
+                addChangedInstancesToTree(update.newInstance);
+            }
+        }));
 
         // sort the structures with the most dependencies to the beginning and get it to restart all of them
         await this.stop(store, true, instanceTypes);
@@ -947,6 +952,9 @@ class Boot extends StateSubscriber {
         return structures;
     }
 
+    /*
+     * Use this function to fetch middlewares of an instances.
+     */
     public getDirectoryMiddlewaresOfInstance(
         instance: BaseStructure,
         dir: DirectorySettings,
@@ -968,10 +976,38 @@ class Boot extends StateSubscriber {
         );
     }
 
+    /*
+     * Wrapper for resolving a path.
+     */
     private resolvePath(path: string): string {
         return resolve(this.baseDir, path);
     }
 
+    /*
+     * This function is useful, when you want to async await a register of a new instance.
+     */
+    public async awaitRegister(store = this.store): Promise<void> {
+        return new Promise((res, rej) => {
+            setTimeout(() => rej('Timeout.'), 5000);
+
+            const bootCycle = (status: Status) => {
+                if (status === Status.started) {
+                    this.removeListener(Events.status, bootCycle);
+                    store.removeListener('register', registerCycle);
+                    res();
+                }
+            };
+            const registerCycle = () => {
+                this.subscribe(Events.status, bootCycle);
+            };
+
+            store.subscribe('register', registerCycle);
+        });
+    };
+
+    /*
+     * Basic loading function of files.
+     */
     private async loadSimple(
         dir: DirectorySettings,
         store: Store = this.store,

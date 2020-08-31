@@ -2,8 +2,8 @@ import {
     Store,
     Boot,
     Server,
-    Configuration,
-} from '../../index';
+    Configuration
+} from "../../index";
 import test from 'ava';
 let boot: Boot, store: Store;
 
@@ -22,6 +22,10 @@ class TestServer extends Server {
 
     async stop() {
         store.logger.info('Stopped.');
+    }
+
+    async destroy() {
+        store.logger.info('I will destroy once.');
     }
 }
 
@@ -45,34 +49,33 @@ test.before(async t => {
 
 test.serial('should create a new automatic server and register it', async t => {
     await store.register(TestServer, true);
+    await boot.awaitRegister();
     const testServer = store.getInstance(TestServer);
     t.true(!!testServer && testServer instanceof TestServer);
 });
 
 test.serial('should create a new automatic configuration and register it', async t => {
     await store.register(TestConfiguration, true);
+    await boot.awaitRegister();
     const testConfig = store.getInstance(TestConfiguration);
     t.true(!!testConfig && testConfig instanceof TestConfiguration);
 });
 
 test.serial('should update the server and use the new config and re-register it', async t => {
     const testServer = store.getInstance(TestServer);
-    const newTestServer = testServer;
+    const newServer = testServer;
 
-    if (!newTestServer) {
+    if (!testServer || !newServer) {
         throw new Error('Could not find server.');
     }
 
-    newTestServer.start = async () => {
+    newServer.start = async () => {
         const testConfig = store.getInstance(TestConfiguration);
         console.log(testConfig?.value.name);
         console.log('Started.');
     };
-    await store.registerUpdate(testServer, newTestServer);
-    t.true(
-        !!newTestServer && newTestServer instanceof TestServer && testServer === newTestServer,
-        `Actually exists and is equal to the old instance, but with updates in it.`
-    );
+    await store.registerUpdate(testServer, newServer);
+    await boot.awaitRegister();
 });
 
 test.serial('should delete the server and the config', async t => {

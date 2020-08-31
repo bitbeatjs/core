@@ -3,7 +3,7 @@ export default {
         '__tests__/local/**/*'
     ],
     environmentVariables: {
-        NODE_ENV: 'local'
+        NODE_ENV: 'local',
     },
     concurrency: 5,
     failFast: true,

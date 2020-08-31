@@ -3,7 +3,7 @@ export default {
         '__tests__/production/**/*'
     ],
     environmentVariables: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
     },
     concurrency: 5,
     failFast: true,
