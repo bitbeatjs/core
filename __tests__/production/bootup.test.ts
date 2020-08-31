@@ -25,14 +25,12 @@ test.serial('should reboot in less than 100 ms without a store', async t => {
 
 test.serial('should reboot in less than 100 ms with a new store', async t => {
     await boot.stop();
-    await boot.store.close();
     const s = new Store(boot, {
         instanceName: boot.name,
         logLevel: boot.logLevel,
     });
     await boot.init(s);
     await boot.start();
-    store = boot.store;
     t.true(store.getBootTime() < 100, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
 });
 
