@@ -41,6 +41,7 @@ test.before(async t => {
     await boot.init();
     store = boot.store;
     await boot.start();
+    t.pass();
 });
 
 test.serial('should create a new automatic server and register it and subscribe to the states.', async t => {
@@ -57,4 +58,5 @@ test.serial('should create a new automatic server and register it and subscribe 
 
 test.after(async t => {
     await boot.shutdown();
+    t.pass();
 });

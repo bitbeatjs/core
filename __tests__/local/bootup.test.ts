@@ -10,10 +10,11 @@ test.before(async t => {
     boot = new Boot();
     await boot.init();
     store = boot.store;
-    await boot.start();
+    t.pass();
 });
 
 test.serial('should boot in less than 100 ms without a store', async t => {
+    await boot.start();
     t.true(store.getBootTime() < 100, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
 });
 
@@ -24,17 +25,12 @@ test.serial('should reboot in less than 100 ms without a store', async t => {
 
 test.serial('should reboot in less than 100 ms with a new store', async t => {
     await boot.stop();
-    await boot.store.close();
-    const s = new Store({
-        prefix: boot.name,
-        baseDir: boot.baseDir,
-        config: boot.getConfig(),
+    const s = new Store(boot, {
         instanceName: boot.name,
         logLevel: boot.logLevel,
     });
     await boot.init(s);
     await boot.start();
-    store = boot.store;
     t.true(store.getBootTime() < 100, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
 });
 
@@ -44,4 +40,5 @@ test.serial('should have a file watcher', async t => {
 
 test.after(async t => {
     await boot.shutdown();
+    t.pass();
 });

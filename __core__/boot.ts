@@ -120,10 +120,7 @@ class Boot extends StateSubscriber {
 
         this.store =
             store ||
-            (new Store({
-                config: this.config,
-                prefix: this.name,
-                baseDir: this.baseDir,
+            (new Store(this, {
                 instanceName: this.name,
                 logLevel: this.logLevel,
             }) as Store);

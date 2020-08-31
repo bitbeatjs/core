@@ -16,7 +16,6 @@ import { Debugger } from 'debug';
 import { ScheduledTask } from 'node-cron';
 import { createWriteStream, WriteStream } from 'fs';
 import { PassThrough } from 'stream';
-import { boot } from '../bin';
 
 export default class Store extends StateSubscriber {
     private readonly loggingStream?: WriteStream;
@@ -42,24 +41,21 @@ export default class Store extends StateSubscriber {
     public watcher?: FSWatcher;
     private readonly bootDirectories: Config['directories'];
 
-    constructor(config: {
-        prefix: string;
+    constructor(boot: Boot, config: {
         instanceName: string;
-        baseDir: string;
-        config: Config;
         logLevel?: string;
         language?: string;
     }) {
         super();
         this.debug = boot.generateDebugger('store');
-        this.bootDirectories = config.config.directories;
+        this.bootDirectories = boot.getConfig().directories;
 
         if (!config.logLevel) {
             config.logLevel = 'info';
         }
 
         this.i18n = new I18n(config.language);
-        this.baseDir = config.baseDir;
+        this.baseDir = boot.baseDir;
         this.connections = {
             redis: {},
         };
@@ -97,7 +93,7 @@ export default class Store extends StateSubscriber {
                 timestamp: pino.stdTimeFunctions.epochTime,
             }, logThrough);
 
-            this.loggingStream = createWriteStream(resolve(config.config.logDirectory, `${Date.now().toString()}.log`));
+            this.loggingStream = createWriteStream(resolve(boot.getConfig().logDirectory, `${Date.now().toString()}.log`));
             logThrough.pipe(this.loggingStream);
             logThrough.pipe(process.stdout);
         } else {

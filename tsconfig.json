@@ -16,6 +16,7 @@
   "files": [
     "./index.ts",
     "./bin/index.ts",
+    "./bin/bootup.ts",
     "./bitbeat.config.ts"
   ],
   "exclude": [

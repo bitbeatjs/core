@@ -1,2 +1,2 @@
 export * from './__core__/index';
-export * from './bin/index';
+export * from './bin/bootup';
