@@ -40,7 +40,6 @@ You can easily use the framework for this purpose by using bitbeat for each dock
 
 ### Requirements
 - Node >= 10
-- Redis
 
 ### Generate
 #### Using the generator

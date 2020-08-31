@@ -4,12 +4,10 @@ import { Logger } from 'pino';
 import { FSWatcher, watch } from 'chokidar';
 import { name as packageName } from '../package.json';
 import pino from 'pino';
-import IORedis from 'ioredis';
-import { Redis, RedisOptions } from 'ioredis';
 import * as Throttle from 'promise-parallel-throttle';
 import I18n from './i18n';
 import { resolve, join } from 'path';
-import { Status, BaseStructure, Constructor, Task, Config, Boot } from "./index";
+import { Status, BaseStructure, Constructor, Task, Config, Boot } from './index';
 import * as Types from './index';
 import { filter } from 'lodash';
 import { Debugger } from 'debug';
@@ -29,11 +27,6 @@ export default class Store extends StateSubscriber {
     public readonly i18n: I18n;
     public readonly cache: Cache;
     public logger: Logger;
-    public connections: {
-        redis: {
-            [name: string]: Redis;
-        };
-    };
     public startTime = 0;
     public bootTime = 0;
     public readonly initTime: number = Date.now();
@@ -56,31 +49,12 @@ export default class Store extends StateSubscriber {
 
         this.i18n = new I18n(config.language);
         this.baseDir = boot.baseDir;
-        this.connections = {
-            redis: {},
-        };
-        const redisOptions: RedisOptions = {
-            host: process.env.REDIS_HOST || '0.0.0.0',
-            username: process.env.REDIS_USERNAME,
-            password: process.env.REDIS_PASSWORD,
-            port: parseInt(process.env.REDIS_PORT || '6379', 10),
-            db: parseInt(process.env.REDIS_DB || '0', 10),
-            family: parseInt(process.env.REDIS_FAMILY || '4', 10),
-            lazyConnect: true,
-            retryStrategy(times: number): number | void | null {
-                return Math.min(times * 200, 2000);
-            }
-        };
-        this.connections.redis = {
-            cache: new IORedis(redisOptions),
-        };
         this.cache = {
             simple: {
                 _fileMap: {},
                 _changedFiles: new Set(),
                 _changedRegistered: new Set(),
             },
-            redis: this.connections.redis.cache,
         };
 
         const logPhysical = Boot.getEnvVar('LOG_PHYSICAL', true);
@@ -132,11 +106,6 @@ export default class Store extends StateSubscriber {
      */
     public async init(): Promise<void> {
         this.next('status', Status.initializing);
-
-        // connect all redis instances
-        await Throttle.all(Object.keys(this.connections.redis)
-            .map((name) => async () => this.connections.redis[name].connect()));
-
         this.logger.debug('Done initializing store.');
         this.next('status', Status.initialized);
     }
@@ -145,11 +114,6 @@ export default class Store extends StateSubscriber {
      * Close the store gracefully.
      */
     public async close(): Promise<void> {
-        await Throttle.all(
-            Object.values(
-                this.connections.redis
-            ).map((connection) => async () => await connection.disconnect())
-        );
         await this.stopFileWatcher();
         await this.logger.removeAllListeners();
         this.loggingStream?.close();

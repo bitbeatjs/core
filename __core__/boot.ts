@@ -240,21 +240,6 @@ class Boot extends StateSubscriber {
             this.debug('Stopped boot.');
             store.clearInstances();
 
-            if (cleanup) {
-                const keys = (
-                    await store.connections.redis.cache.keys(`${packageName}:*`)
-                ).concat(
-                    await store.connections.redis.cache.keys(
-                        `${packageName}_${this.name}:*`
-                    )
-                );
-                await Throttle.all(
-                    keys.map((key) => async () =>
-                        await store.connections.redis.cache.del(key)
-                    )
-                );
-            }
-
             store.logger.info('Exiting...');
             await store.close();
             this.debug('Cleaned up queues and redis.');

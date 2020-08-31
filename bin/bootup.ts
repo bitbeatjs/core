@@ -9,7 +9,6 @@ let boot: Boot,
     store: Store,
     cache: Store['cache'],
     logger: Logger,
-    connections: Store['connections'],
     getInstance: Store['getInstance'],
     getAllInstances: Store['getAllInstances'],
     getInstanceByName: Store['getInstanceByName'],
@@ -38,7 +37,6 @@ export default async (): Promise<void> => {
         store = boot.store as Store;
         logger = store.logger as Logger;
         cache = store.cache;
-        connections = store.connections;
 
         // bind all functions
         getInstance =  store.getInstance.bind(store);
@@ -108,5 +106,4 @@ export {
     getInstanceByName,
     register,
     registerBulk,
-    connections,
 };

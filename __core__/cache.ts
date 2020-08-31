@@ -1,5 +1,3 @@
-import { Redis } from 'ioredis';
-
 export default interface Cache {
     simple: {
         _fileMap: {
@@ -9,7 +7,6 @@ export default interface Cache {
         _changedRegistered: Set<InstanceType<Constructor>>;
         [key: string]: any;
     };
-    redis: Redis;
 }
 
 interface Constructor {
