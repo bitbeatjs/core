@@ -328,6 +328,32 @@ export default class Store extends StateSubscriber {
     }
 
     /**
+     * Remove external registered instance from the store as an bulk.
+     * This will prevent the instance to reboot each time, but will reboot once after the bulk is removed.
+     */
+    public async unregisterBulk<Constr extends Constructor>(
+      instances: Set<InstanceType<Constr>>
+    ): Promise<Set<InstanceType<Constr>>> {
+        for (const entry of instances) {
+            if (!this.registeredInstances.has(entry)) {
+                throw new Error('Not registered.');
+            }
+
+            await entry.destroy();
+            this.registeredInstances.delete(entry);
+            this.linkRegistered();
+            this.cache.simple._changedRegistered.add({
+                newInstance: undefined,
+                oldInstance: entry,
+            });
+            this.debug(`Unregistered instance '${entry.name}'.`);
+        }
+
+        this.next('register', instances);
+        return instances;
+    }
+
+    /**
      * Update a registered instance if available.
      */
     public async registerUpdate<Constr extends Constructor>(
