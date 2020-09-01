@@ -13,17 +13,17 @@ test.before(async t => {
     t.pass();
 });
 
-test.serial('should boot in less than 100 ms without a store', async t => {
+test.serial('should boot in less than 200 ms without a store', async t => {
     await boot.start();
-    t.true(store.getBootTime() < 100, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
+    t.true(store.getBootTime() < 200, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
 });
 
-test.serial('should reboot in less than 100 ms without a store', async t => {
+test.serial('should reboot in less than 200 ms without a store', async t => {
     await boot.restart();
-    t.true(store.getBootTime() < 100, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
+    t.true(store.getBootTime() < 200, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
 });
 
-test.serial('should reboot in less than 100 ms with a new store', async t => {
+test.serial('should reboot in less 200 ms with a new store', async t => {
     await boot.stop();
     const s = new Store(boot, {
         instanceName: boot.name,
@@ -31,7 +31,7 @@ test.serial('should reboot in less than 100 ms with a new store', async t => {
     });
     await boot.init(s);
     await boot.start();
-    t.true(store.getBootTime() < 100, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
+    t.true(store.getBootTime() < 200, `Actual time was ${ms(store.getBootTime(), { long: true })}.`);
 });
 
 test.serial('should have a file watcher', async t => {
