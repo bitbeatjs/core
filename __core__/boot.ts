@@ -54,7 +54,7 @@ class Boot extends StateSubscriber {
         }
 
         // create the debug
-        this.debug = this.generateDebugger('boot');
+        this.debug = Boot.generateDebugger('boot');
 
         this.ips = reduce(
             Object.values(Boot.getIPs()),
@@ -85,8 +85,8 @@ class Boot extends StateSubscriber {
     /**
      * This will generate you an instance of a debugger in the namespace of the core.
      */
-    public generateDebugger(name: string): Debugger {
-        const scopedDebugger = debug(`${this.name}:${name}`);
+    public static generateDebugger(name: string): Debugger {
+        const scopedDebugger = debug(`${packageName}:${name}`);
 
         if (Boot.getEnvVar('BITBEAT_DEBUG', true)) {
             debug.enable(Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') || `${this.name}:*`);

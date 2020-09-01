@@ -31,13 +31,6 @@ export default async (): Promise<void> => {
     // all available commands
     const commands = ['start'];
 
-    // rebind the function
-    const rebindStore = (store: Store, functionInstances: [any, string][]) => {
-        functionInstances.forEach((instance) => {
-            instance[0] = (store as any)[instance[1]].bind(store);
-        });
-    };
-
     // the basic init boot function to export always the update
     const initBoot = async (configPath: string) => {
         boot = new Boot();
@@ -49,21 +42,16 @@ export default async (): Promise<void> => {
         cache = store.cache;
 
         // rebind all functions to the store
-        rebindStore(
-            store,
-            [
-                [getInstance, 'getInstance'],
-                [getAllInstances, 'getAllInstances'],
-                [getInstancesOfType, 'getInstancesOfType'],
-                [register, 'register'],
-                [unregister, 'unregister'],
-                [unregisterBulk, 'unregisterBulk'],
-                [registerBulk, 'registerBulk'],
-                [registerUpdate, 'registerUpdate'],
-                [getClassByName, 'getClassByName'],
-                [getInstanceByName, 'getInstanceByName']
-            ]
-        );
+        getInstance =  store.getInstance.bind(store);
+        getAllInstances = store.getAllInstances.bind(store);
+        getInstancesOfType = store.getInstancesOfType.bind(store);
+        register = store.register.bind(store);
+        registerBulk = store.registerBulk.bind(store);
+        unregister = store.unregister.bind(store);
+        unregisterBulk = store.unregisterBulk.bind(store);
+        registerUpdate = store.registerUpdate.bind(store);
+        getClassByName = store.getClassByName.bind(store);
+        getInstanceByName = store.getInstanceByName.bind(store);
 
         // add the boot files
         boot.next(Events.status, Status.registering);
