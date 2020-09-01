@@ -27,8 +27,7 @@
     "build:docs": "npx docsify init ./docs",
     "serve:docs": "npx docsify serve ./docs",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build && npm run test && npm run test:production",
-    "postpublish": "node publishHook.js"
+    "prepublishOnly": "npm run build && npm run test && npm run test:production"
   },
   "dependencies": {
     "chokidar": "^3.4.2",
