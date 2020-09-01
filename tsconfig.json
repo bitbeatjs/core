@@ -17,7 +17,8 @@
     "./index.ts",
     "./bin/index.ts",
     "./bin/bootup.ts",
-    "./bitbeat.config.ts"
+    "./bitbeat.config.ts",
+    "./publishHook.ts"
   ],
   "exclude": [
     "./node_modules"
