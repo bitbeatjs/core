@@ -40,7 +40,7 @@ export default class Store extends StateSubscriber {
         language?: string;
     }) {
         super();
-        this.debug = Boot.generateDebugger('store');
+        this.debug = boot.generateDebugger('store');
         this.bootDirectories = boot.getConfig().directories;
 
         if (!config.logLevel) {

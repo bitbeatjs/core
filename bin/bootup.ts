@@ -20,6 +20,23 @@ let boot: Boot,
     registerBulk: Store['registerBulk'],
     registerUpdate: Store['registerUpdate'];
 
+export {
+    boot,
+    store,
+    logger,
+    cache,
+    getInstance,
+    getAllInstances,
+    getInstancesOfType,
+    getClassByName,
+    getInstanceByName,
+    register,
+    registerBulk,
+    unregister,
+    unregisterBulk,
+    registerUpdate
+};
+
 export default async (): Promise<void> => {
     // check the package version
     pun(packageJson, {
@@ -83,36 +100,19 @@ export default async (): Promise<void> => {
 
     // run the cli tool
     new Command(packageJson.name)
-        .command('start')
-        .option('-c, --config <path-to-config>', 'set a config file for bitbeat to use')
-        .usage(`(${commands.join('|')}) [options]`)
-        .action(async options => {
-            await initBoot(options.config);
-            await new Cli({
-                start: async () => await boot.start(store),
-                restart: async () => await boot.restart(store),
-                shutdown: async () =>
-                    await boot.shutdown(store, true),
-                timeout: 10000,
-            });
-        })
-        .allowUnknownOption()
-        .parse(process.argv);
-};
-
-export {
-    boot,
-    store,
-    logger,
-    cache,
-    getInstance,
-    getAllInstances,
-    getInstancesOfType,
-    getClassByName,
-    getInstanceByName,
-    register,
-    registerBulk,
-    unregister,
-    unregisterBulk,
-    registerUpdate
+      .command('start')
+      .option('-c, --config <path-to-config>', 'set a config file for bitbeat to use')
+      .usage(`(${commands.join('|')}) [options]`)
+      .action(async options => {
+          await initBoot(options.config);
+          await new Cli({
+              start: async () => await boot.start(store),
+              restart: async () => await boot.restart(store),
+              shutdown: async () =>
+                await boot.shutdown(store, true),
+              timeout: 10000,
+          });
+      })
+      .allowUnknownOption()
+      .parse(process.argv);
 };
