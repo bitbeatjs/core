@@ -987,7 +987,7 @@ class Boot extends StateSubscriber {
     /*
      * Use this function to fetch middlewares of an instances without knowing the directory.
      */
-    public getMiddlewareOfInstance(
+    public getMiddlewaresOfInstance(
       instance: BaseStructure,
       store: Store = this.store
     ): Set<InstanceType<typeof Middleware>> {
