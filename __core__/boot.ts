@@ -967,7 +967,7 @@ class Boot extends StateSubscriber {
         instance: BaseStructure,
         dir: DirectorySettings,
         store: Store = this.store
-    ): Set<InstanceType<typeof Middleware>> {
+    ): Set<Middleware> {
         if (!(instance as any).middlewares || !(instance as any).middlewares.size) {
             return new Set();
         }
@@ -990,7 +990,7 @@ class Boot extends StateSubscriber {
     public getMiddlewaresOfInstance(
       instance: BaseStructure,
       store: Store = this.store
-    ): Set<InstanceType<typeof Middleware>> {
+    ): Set<Middleware> {
         if (!(instance as any).middlewares || !(instance as any).middlewares.size) {
             return new Set();
         }
