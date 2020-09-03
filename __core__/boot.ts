@@ -421,7 +421,7 @@ class Boot extends StateSubscriber {
                 this.next(Status.providing, instance);
                 await Throttle.all(
                     [
-                        ...instance.middlewares,
+                        ...instance.middlewares || new Set(),
                     ].map((middleware: Middleware) => async () =>
                         middleware.beforeProvide(instance)
                     )
@@ -429,7 +429,7 @@ class Boot extends StateSubscriber {
                 await instance.provide();
                 await Throttle.all(
                     [
-                        ...instance.middlewares,
+                        ...instance.middlewares || new Set(),
                     ].map((middleware: Middleware) => async () =>
                         middleware.afterProvide(instance)
                     )
@@ -484,7 +484,7 @@ class Boot extends StateSubscriber {
                             this.next(Status.initializing, instance);
                             await Throttle.all(
                                 [
-                                    ...instance.middlewares,
+                                    ...instance.middlewares || new Set(),
                                 ].map(
                                     (middleware: Middleware) => async () =>
                                         middleware.beforeInitialize(
@@ -495,7 +495,7 @@ class Boot extends StateSubscriber {
                             await instance.initialize();
                             await Throttle.all(
                                 [
-                                    ...instance.middlewares,
+                                    ...instance.middlewares || new Set(),
                                 ].map(
                                     (middleware: Middleware) => async () =>
                                         middleware.afterInitialize(instance)
@@ -554,7 +554,7 @@ class Boot extends StateSubscriber {
                             this.next(Status.starting, instance);
                             await Throttle.all(
                                 [
-                                    ...instance.middlewares,
+                                    ...instance.middlewares || new Set(),
                                 ].map((middleware: any) => async () =>
                                     middleware.beforeStart(instance)
                                 )
@@ -562,7 +562,7 @@ class Boot extends StateSubscriber {
                             await instance.start();
                             await Throttle.all(
                                 [
-                                    ...instance.middlewares,
+                                    ...instance.middlewares || new Set(),
                                 ].map((middleware: any) => async () =>
                                     middleware.afterStart(instance)
                                 )
@@ -622,7 +622,7 @@ class Boot extends StateSubscriber {
                         this.next(Status.stopping, instance);
                         await Throttle.all(
                             [
-                                ...instance.middlewares,
+                                ...instance.middlewares || new Set(),
                             ].map((middleware: any) => async () =>
                                 middleware.beforeStop(instance)
                             )
@@ -630,7 +630,7 @@ class Boot extends StateSubscriber {
                         await instance.stop();
                         await Throttle.all(
                             [
-                                ...instance.middlewares,
+                                ...instance.middlewares || new Set(),
                             ].map((middleware: any) => async () =>
                                 middleware.afterStop(instance)
                             )
@@ -1132,7 +1132,7 @@ class Boot extends StateSubscriber {
                 if (!item.name) {
                     item.name = item.constructor.name;
                 }
-                if (item.middlewares) {
+                if (item.middlewares && item.middlewares.size) {
                     item.middlewares = this.getMiddlewaresOfInstance(
                       item,
                       store,
