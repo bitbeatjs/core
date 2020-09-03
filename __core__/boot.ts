@@ -419,14 +419,9 @@ class Boot extends StateSubscriber {
 
                 instance.next(Events.status, Status.providing);
                 this.next(Status.providing, instance);
-                const middlewares = this.getDirectoryMiddlewaresOfInstance(
-                    instance,
-                    dir,
-                    store
-                );
                 await Throttle.all(
                     [
-                        ...middlewares,
+                        ...instance.middlewares,
                     ].map((middleware: Middleware) => async () =>
                         middleware.beforeProvide(instance)
                     )
@@ -434,7 +429,7 @@ class Boot extends StateSubscriber {
                 await instance.provide();
                 await Throttle.all(
                     [
-                        ...middlewares,
+                        ...instance.middlewares,
                     ].map((middleware: Middleware) => async () =>
                         middleware.afterProvide(instance)
                     )
@@ -487,14 +482,9 @@ class Boot extends StateSubscriber {
 
                             instance.next(Events.status, Status.initializing);
                             this.next(Status.initializing, instance);
-                            const middlewares = this.getDirectoryMiddlewaresOfInstance(
-                                instance,
-                                dir,
-                                store
-                            );
                             await Throttle.all(
                                 [
-                                    ...middlewares,
+                                    ...instance.middlewares,
                                 ].map(
                                     (middleware: Middleware) => async () =>
                                         middleware.beforeInitialize(
@@ -505,7 +495,7 @@ class Boot extends StateSubscriber {
                             await instance.initialize();
                             await Throttle.all(
                                 [
-                                    ...middlewares,
+                                    ...instance.middlewares,
                                 ].map(
                                     (middleware: Middleware) => async () =>
                                         middleware.afterInitialize(instance)
@@ -562,14 +552,9 @@ class Boot extends StateSubscriber {
 
                             instance.next(Events.status, Status.starting);
                             this.next(Status.starting, instance);
-                            const middlewares = this.getDirectoryMiddlewaresOfInstance(
-                                instance,
-                                dir,
-                                store
-                            );
                             await Throttle.all(
                                 [
-                                    ...middlewares,
+                                    ...instance.middlewares,
                                 ].map((middleware: any) => async () =>
                                     middleware.beforeStart(instance)
                                 )
@@ -577,7 +562,7 @@ class Boot extends StateSubscriber {
                             await instance.start();
                             await Throttle.all(
                                 [
-                                    ...middlewares,
+                                    ...instance.middlewares,
                                 ].map((middleware: any) => async () =>
                                     middleware.afterStart(instance)
                                 )
@@ -635,14 +620,9 @@ class Boot extends StateSubscriber {
 
                         instance.next(Events.status, Status.stopping);
                         this.next(Status.stopping, instance);
-                        const middlewares = this.getDirectoryMiddlewaresOfInstance(
-                            instance,
-                            dir,
-                            store
-                        );
                         await Throttle.all(
                             [
-                                ...middlewares,
+                                ...instance.middlewares,
                             ].map((middleware: any) => async () =>
                                 middleware.beforeStop(instance)
                             )
@@ -650,7 +630,7 @@ class Boot extends StateSubscriber {
                         await instance.stop();
                         await Throttle.all(
                             [
-                                ...middlewares,
+                                ...instance.middlewares,
                             ].map((middleware: any) => async () =>
                                 middleware.afterStop(instance)
                             )
@@ -976,10 +956,17 @@ class Boot extends StateSubscriber {
             [...(instance as any).middlewares]
                 .filter((x) => !!x)
                 .filter((middleware: Middleware) => {
-                    const middlewares = [...dir.middlewares].filter(
+                    const middlewares = [...dir.middlewares]
+                      .filter(
                         (mw) => middleware instanceof mw
-                    );
-                    return middlewares.length;
+                      );
+                    return !!middlewares.length;
+                }).map((mw) => {
+                    if (typeof mw === typeof Middleware) {
+                        return store.getInstance(mw);
+                    }
+
+                    return mw;
                 })
         );
     }
@@ -1144,6 +1131,12 @@ class Boot extends StateSubscriber {
             const formatItem = (item: any) => {
                 if (!item.name) {
                     item.name = item.constructor.name;
+                }
+                if (item.middlewares) {
+                    item.middlewares = this.getMiddlewaresOfInstance(
+                      item,
+                      store,
+                    );
                 }
                 return item;
             };
