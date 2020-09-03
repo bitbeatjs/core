@@ -1,4 +1,5 @@
 const gulp = require('gulp');
+const changedInPlace = require('gulp-changed-in-place');
 const ts = require('gulp-typescript');
 const terser = require('gulp-terser');
 const merge = require('merge-stream');
@@ -7,6 +8,7 @@ const eslint = require('gulp-eslint');
 const tsProject = ts.createProject('tsconfig.json');
 const compileTypeScript = () => {
   const tsResult = tsProject.src()
+    .pipe(changedInPlace())
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError())

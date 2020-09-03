@@ -103,11 +103,6 @@ class Boot extends StateSubscriber {
     }): Promise<void> {
         this.next(Events.status, Status.initializing);
         this.config = await this.loadCoreConfig(options?.configPath);
-
-        if (!this.config.fileWatcherDelay) {
-            this.config.fileWatcherDelay = 100;
-        }
-
         const projectPackageJson = await this.loadProjectPackage();
 
         if (!projectPackageJson.name) {
@@ -275,6 +270,7 @@ class Boot extends StateSubscriber {
         let config: Config = {
             logDirectory: '',
             directories: {},
+            fileWatcherDelay: 300,
         };
         try {
             config = (await import(resolve(this.coreDir, mainFile))).default as Config;
@@ -733,6 +729,9 @@ class Boot extends StateSubscriber {
         }
     }
 
+    /**
+     * Cleanup all stuff when shutting down.
+     */
     private async cleanUp(
         store: Store = this.store,
         cleanUpDirectories?: Set<DirectorySettings>,
@@ -776,6 +775,9 @@ class Boot extends StateSubscriber {
         );
     }
 
+    /**
+     * Start things up with directories or by default all directories.
+     */
     private async startup(
         isReboot = false,
         store: Store = this.store,
@@ -813,6 +815,9 @@ class Boot extends StateSubscriber {
         );
     }
 
+    /**
+     * Load all instances of a directory.
+     */
     private async loadInstancesOfDirectory(
         dir: DirectorySettings,
         store: Store = this.store
@@ -822,6 +827,9 @@ class Boot extends StateSubscriber {
         return instances;
     }
 
+    /**
+     * Load all instances of a type.
+     */
     private async loadInstancesOfType(
         type: BaseStructure,
         store: Store = this.store
@@ -953,26 +961,51 @@ class Boot extends StateSubscriber {
     }
 
     /*
-     * Use this function to fetch middlewares of an instances.
+     * Use this function to fetch middlewares of an instances with knowing the directory.
      */
     public getDirectoryMiddlewaresOfInstance(
         instance: BaseStructure,
         dir: DirectorySettings,
         store: Store = this.store
     ): Set<InstanceType<typeof Middleware>> {
-        if (!(instance as any).middlewares) {
+        if (!(instance as any).middlewares || !(instance as any).middlewares.size) {
             return new Set();
         }
 
         return new Set(
             [...(instance as any).middlewares]
+                .filter((x) => !!x)
                 .filter((middleware: Middleware) => {
                     const middlewares = [...dir.middlewares].filter(
                         (mw) => middleware instanceof mw
                     );
                     return middlewares.length;
                 })
-                .map((middleware) => store.getInstance(middleware))
+        );
+    }
+
+    /*
+     * Use this function to fetch middlewares of an instances without knowing the directory.
+     */
+    public getMiddlewareOfInstance(
+      instance: BaseStructure,
+      store: Store = this.store
+    ): Set<InstanceType<typeof Middleware>> {
+        if (!(instance as any).middlewares || !(instance as any).middlewares.size) {
+            return new Set();
+        }
+
+        const dir = Object.values(this.config.directories)
+          .find((dir) => instance instanceof dir.type);
+
+        if (!dir) {
+            throw new Error('There is no root type for this instance.');
+        }
+
+        return this.getDirectoryMiddlewaresOfInstance(
+          instance,
+          dir,
+          store,
         );
     }
 
