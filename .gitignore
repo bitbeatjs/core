@@ -9,3 +9,4 @@ log/*
 node_modules_bak
 *.d.ts
 .npmrc
+*.tar.gz
