@@ -959,7 +959,13 @@ class Boot extends StateSubscriber {
                 .filter((x) => !!x)
                 .map((mw) => {
                       if (typeof mw === typeof Middleware) {
-                          return store.getInstance(mw);
+                          const instance = store.getInstance(mw);
+
+                          if (!instance) {
+                              throw new Error('Instance of middleware not found!');
+                          }
+
+                          return instance;
                       }
 
                       return mw;
