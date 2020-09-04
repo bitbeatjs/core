@@ -221,7 +221,6 @@ class Boot extends StateSubscriber {
      */
     public async shutdown(
         store: Store = this.store,
-        cleanup = false
     ): Promise<void> {
         try {
             this.next(Events.status, Status.shutdown);
@@ -961,7 +960,7 @@ class Boot extends StateSubscriber {
                 .filter((middleware: Middleware) => {
                     const middlewares = [...dir.middlewares]
                       .filter(
-                        (mw) => middleware instanceof mw
+                        (mw) => (middleware as any) instanceof mw
                       );
                     return !!middlewares.length;
                 }).map((mw) => {
@@ -1103,6 +1102,7 @@ class Boot extends StateSubscriber {
     ): Promise<void> {
         delete require.cache[require.resolve(fileName)];
         this.debug(`Removed '${fileName}' from file cache.`);
+        store.logger.debug(`Removed '${fileName}' from file cache.`);
     }
 
     private async removeAllFromFileCache(
