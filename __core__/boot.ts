@@ -773,7 +773,7 @@ class Boot extends StateSubscriber {
         );
         await Throttle.all(
             directories.map((dir) => async () =>
-                this.loadInstancesOfDirectory(dir, store)
+                this.loadInstancesOfDirectory(dir, store, false)
             )
         );
         await Throttle.all(
@@ -802,9 +802,10 @@ class Boot extends StateSubscriber {
      */
     private async loadInstancesOfDirectory(
         dir: DirectorySettings,
-        store: Store = this.store
+        store: Store = this.store,
+        cache = true,
     ): Promise<Set<BaseStructure>> {
-        const instances = await this.loadSimple(dir, store, true);
+        const instances = await this.loadSimple(dir, store, cache);
         await this.provideInstances(instances, dir, store);
         return instances;
     }
