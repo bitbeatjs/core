@@ -534,7 +534,7 @@ export default class Test extends Server {
 
 This principal will be also used in the boot.ts for each project. There you can register instances of other modules, e.g. add a web-server for your project.
 
-!> By default the core will reboot when you register an instance. You can prevent this by passing `false` as second parameter.
+!> By default the core will reboot when you register an instance. You can prevent this by passing `false` as third parameter.
 
 ----
 
@@ -550,8 +550,6 @@ export default class Test extends Task {
     async configure() {
         const myConfiguration = getInstance(MyConfiguration);
         await unregister(myConfiguration);
-        // this function will delay everything until the restart is done
-        await boot.awaitRegister();
     }
 }
 ```
@@ -582,11 +580,11 @@ export default class Test extends Task {
             console.log('Started.');
         };
         await registerUpdate(myServer, myNewServer);
-        // this function will delay everything until the restart is done
-        await boot.awaitRegister();
     }
 }
 ```
+
+!> By default the core will reboot when you update an instance. You can prevent this by passing `false` as third parameter.
 
 ---- 
 
