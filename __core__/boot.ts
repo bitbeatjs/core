@@ -421,18 +421,18 @@ class Boot extends StateSubscriber {
 
                 instance.next(Events.status, Status.providing);
                 this.next(Status.providing, instance);
+                const middlewares = this.getMiddlewaresOfInstance(
+                  instance,
+                  store,
+                );
                 await Throttle.all(
-                    [
-                        ...instance.middlewares || new Set(),
-                    ].map((middleware: Middleware) => async () =>
+                    [...middlewares].map((middleware: Middleware) => async () =>
                         middleware.beforeProvide(instance)
                     )
                 );
                 await instance.provide();
                 await Throttle.all(
-                    [
-                        ...instance.middlewares || new Set(),
-                    ].map((middleware: Middleware) => async () =>
+                    [...middlewares].map((middleware: Middleware) => async () =>
                         middleware.afterProvide(instance)
                     )
                 );
@@ -484,10 +484,12 @@ class Boot extends StateSubscriber {
 
                             instance.next(Events.status, Status.initializing);
                             this.next(Status.initializing, instance);
+                            const middlewares = this.getMiddlewaresOfInstance(
+                              instance,
+                              store,
+                            );
                             await Throttle.all(
-                                [
-                                    ...instance.middlewares || new Set(),
-                                ].map(
+                                [...middlewares].map(
                                     (middleware: Middleware) => async () =>
                                         middleware.beforeInitialize(
                                             instance
@@ -496,9 +498,7 @@ class Boot extends StateSubscriber {
                             );
                             await instance.initialize();
                             await Throttle.all(
-                                [
-                                    ...instance.middlewares || new Set(),
-                                ].map(
+                                [...middlewares].map(
                                     (middleware: Middleware) => async () =>
                                         middleware.afterInitialize(instance)
                                 )
@@ -554,18 +554,18 @@ class Boot extends StateSubscriber {
 
                             instance.next(Events.status, Status.starting);
                             this.next(Status.starting, instance);
+                            const middlewares = this.getMiddlewaresOfInstance(
+                              instance,
+                              store,
+                            );
                             await Throttle.all(
-                                [
-                                    ...instance.middlewares || new Set(),
-                                ].map((middleware: any) => async () =>
+                                [...middlewares].map((middleware: any) => async () =>
                                     middleware.beforeStart(instance)
                                 )
                             );
                             await instance.start();
                             await Throttle.all(
-                                [
-                                    ...instance.middlewares || new Set(),
-                                ].map((middleware: any) => async () =>
+                                [...middlewares].map((middleware: any) => async () =>
                                     middleware.afterStart(instance)
                                 )
                             );
@@ -622,18 +622,18 @@ class Boot extends StateSubscriber {
 
                         instance.next(Events.status, Status.stopping);
                         this.next(Status.stopping, instance);
+                        const middlewares = this.getMiddlewaresOfInstance(
+                          instance,
+                          store,
+                        );
                         await Throttle.all(
-                            [
-                                ...instance.middlewares || new Set(),
-                            ].map((middleware: any) => async () =>
+                            [...middlewares].map((middleware: any) => async () =>
                                 middleware.beforeStop(instance)
                             )
                         );
                         await instance.stop();
                         await Throttle.all(
-                            [
-                                ...instance.middlewares || new Set(),
-                            ].map((middleware: any) => async () =>
+                            [...middlewares].map((middleware: any) => async () =>
                                 middleware.afterStop(instance)
                             )
                         );
@@ -1136,12 +1136,6 @@ class Boot extends StateSubscriber {
                 if (!item.name) {
                     item.name = item.constructor.name;
                 }
-                if (item.middlewares && item.middlewares.size) {
-                    item.middlewares = this.getMiddlewaresOfInstance(
-                      item,
-                      store,
-                    );
-                }
                 return item;
             };
 
@@ -1291,12 +1285,12 @@ class Boot extends StateSubscriber {
                         ++(task as any)._count;
                     }
 
-                    const middlewares: Set<Middleware> =
-                        instance?.middlewares || new Set();
+                    const middlewares = this.getMiddlewaresOfInstance(
+                      instance,
+                      store,
+                    );
                     await Throttle.all(
-                        [
-                            ...middlewares,
-                        ].map((middleware: any) => async () =>
+                        [...middlewares].map((middleware: any) => async () =>
                             middleware.beforeRun(instance)
                         ),
                         {
@@ -1305,9 +1299,7 @@ class Boot extends StateSubscriber {
                     );
                     await instance.run();
                     await Throttle.all(
-                        [
-                            ...middlewares,
-                        ].map((middleware: any) => async () =>
+                        [...middlewares].map((middleware: any) => async () =>
                             middleware.afterRun(instance)
                         ),
                         {
