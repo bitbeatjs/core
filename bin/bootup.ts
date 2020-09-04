@@ -109,7 +109,7 @@ export default async (): Promise<void> => {
               start: async () => await boot.start(store),
               restart: async () => await boot.restart(store),
               shutdown: async () =>
-                await boot.shutdown(store, true),
+                await boot.shutdown(store),
               timeout: 10000,
           });
       })
