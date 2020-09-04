@@ -908,6 +908,9 @@ class Boot extends StateSubscriber {
         this.next(Events.status, Status.restarted);
     }
 
+    /**
+     * Get the directory by type.
+     */
     private getDirectoryByType(
         type: BaseStructure
     ): DirectorySettings | undefined {
@@ -916,6 +919,9 @@ class Boot extends StateSubscriber {
         );
     }
 
+    /**
+     * Get the dependencies of the giving type.
+     */
     private getDependencies(
         type: BaseStructure
     ): Set<BaseStructure> | undefined {
@@ -923,6 +929,9 @@ class Boot extends StateSubscriber {
         return dir?.dependencies;
     }
 
+    /**
+     * Get the types which are dependent on the giving type.
+     */
     private getDependents(
         type: BaseStructure
     ): Set<BaseStructure> {
