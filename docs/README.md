@@ -534,11 +534,13 @@ export default class Test extends Server {
 
 This principal will be also used in the boot.ts for each project. There you can register instances of other modules, e.g. add a web-server for your project.
 
+!> By default the core will reboot when you register an instance. You can prevent this by passing `false` as second parameter.
+
 ----
 
 ##### unregister / unregisterBulk
 
-Sometimes you need to unregister registered instances again. To do so, use either the `unregister` function, to only remove a single instance or `unregisterBulk`, to remove multiple.
+Sometimes you need to unregister registered instances again. To do so, use either the `unregister` function, to only remove a single instance or `unregisterBulk`, to remove multiple.<br>
 
 ```typescript
 import { unregister, Task } from '@bitbeat/core';
@@ -553,6 +555,8 @@ export default class Test extends Task {
     }
 }
 ```
+
+!> By default the core will reboot when you unregister an instance. You can prevent this by passing `false` as second parameter.
 
 ----
 
