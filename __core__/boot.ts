@@ -957,18 +957,19 @@ class Boot extends StateSubscriber {
         return new Set(
             [...(instance as any).middlewares]
                 .filter((x) => !!x)
+                .map((mw) => {
+                      if (typeof mw === typeof Middleware) {
+                          return store.getInstance(mw);
+                      }
+
+                      return mw;
+                })
                 .filter((middleware: Middleware) => {
                     const middlewares = [...dir.middlewares]
                       .filter(
                         (mw) => (middleware as any) instanceof mw
                       );
                     return !!middlewares.length;
-                }).map((mw) => {
-                    if (typeof mw === typeof Middleware) {
-                        return store.getInstance(mw);
-                    }
-
-                    return mw;
                 })
         );
     }
