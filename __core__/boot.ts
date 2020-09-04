@@ -375,8 +375,11 @@ class Boot extends StateSubscriber {
             if (!isReboot) {
                 store.cache.simple._changedFiles.clear();
                 store.cache.simple._changedRegistered.clear();
-                store.on('register', async (instances) => {
-                    if (!instances) {
+                store.on('register', async ({ instances, reboot }: {
+                    instances: Set<BaseStructure>;
+                    reboot: boolean;
+                }) => {
+                    if (!instances || !instances.size || !reboot) {
                         return;
                     }
 

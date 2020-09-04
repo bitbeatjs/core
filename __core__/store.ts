@@ -233,13 +233,17 @@ export default class Store extends StateSubscriber {
      */
     public async register<Constr extends Constructor>(
         instance: InstanceType<Constr>,
-        createInstance = false
+        createInstance = false,
+        reboot = true
     ): Promise<InstanceType<Constr>> {
         const createdInstance = await this.createAndAddInstance(
             instance,
             createInstance
         );
-        this.next('register', createdInstance);
+        this.next('register', {
+            instances: new Set([createdInstance]),
+            reboot,
+        });
         return createdInstance;
     }
 
@@ -286,7 +290,8 @@ export default class Store extends StateSubscriber {
         instances: Set<{
             instance: InstanceType<Constr>;
             createInstance?: boolean;
-        }>
+        }>,
+        reboot = true,
     ): Promise<Set<InstanceType<Constr>>> {
         const outputInstances: Set<InstanceType<Constr>> = new Set();
         for (const entry of instances) {
@@ -302,7 +307,10 @@ export default class Store extends StateSubscriber {
             this.debug(`Registered instance '${createdInstance.name}'.`);
         }
 
-        this.next('register', outputInstances);
+        this.next('register', {
+            instances: outputInstances,
+            reboot,
+        });
         this.debug(`Registered bulk of instances.`);
         return outputInstances;
     }
@@ -311,7 +319,8 @@ export default class Store extends StateSubscriber {
      * Remove an registered instance if available.
      */
     public async unregister<Constr extends Constructor>(
-        instance: InstanceType<Constr>
+        instance: InstanceType<Constr>,
+        reboot = true,
     ): Promise<void> {
         if (!this.registeredInstances.has(instance)) {
             throw new Error('Not registered.');
@@ -325,7 +334,10 @@ export default class Store extends StateSubscriber {
             oldInstance: instance,
         });
         this.debug(`Unregistered instance '${instance.name}'.`);
-        this.next('register', instance);
+        this.next('register', {
+            instances: new Set([instance]),
+            reboot,
+        });
     }
 
     /**
@@ -333,7 +345,8 @@ export default class Store extends StateSubscriber {
      * This will prevent the instance to reboot each time, but will reboot once after the bulk is removed.
      */
     public async unregisterBulk<Constr extends Constructor>(
-      instances: Set<InstanceType<Constr>>
+      instances: Set<InstanceType<Constr>>,
+      reboot = true,
     ): Promise<Set<InstanceType<Constr>>> {
         for (const entry of instances) {
             if (!this.registeredInstances.has(entry)) {
@@ -350,7 +363,10 @@ export default class Store extends StateSubscriber {
             this.debug(`Unregistered instance '${entry.name}'.`);
         }
 
-        this.next('register', instances);
+        this.next('register', {
+            instances,
+            reboot,
+        });
         this.debug(`Unregistered bulk of instances.`);
         return instances;
     }
@@ -382,7 +398,8 @@ export default class Store extends StateSubscriber {
             oldInstance: InstanceType<Constr>;
             newInstance: InstanceType<Constr>;
             createInstance: boolean;
-        }>
+        }>,
+        reboot = true
     ): Promise<Set<InstanceType<Constr>>> {
         const outputInstances: Set<InstanceType<Constr>> = new Set();
 
@@ -399,7 +416,10 @@ export default class Store extends StateSubscriber {
             outputInstances.add(createdInstance);
         }
 
-        this.next('register', outputInstances);
+        this.next('register', {
+            instances: outputInstances,
+            reboot,
+        });
         return outputInstances;
     }
 
