@@ -8,7 +8,6 @@ const eslint = require('gulp-eslint');
 const tsProject = ts.createProject('tsconfig.json');
 const compileTypeScript = () => {
   const tsResult = tsProject.src()
-    .pipe(changedInPlace())
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError())
