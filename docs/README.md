@@ -26,6 +26,8 @@
 This is maybe the easiest case. You want to run a basic web server with a quick and easy environment, to create new routes and execute actions for it.<br>
 For that you will need the core and [web package](#add-existing-module-extend-core) of bitbeat.
 
+[Checkout this demo project to get started quickly.](https://github.com/bitbeatjs/examples-web)
+
 ##### Blackbox, with no connection available from the outside
 Sometimes you just want a script which is running scheduled tasks, but has no accessibility from the outside or no internet connection.<br>
 For those you can just keep the core package without any module and create the stuff you need.<br>
