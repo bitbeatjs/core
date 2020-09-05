@@ -1311,8 +1311,6 @@ Here is a list of things I've already planned to implement in the future:
 
 ## Support
 If you like bitbeat, consider giving it a star on github and watch it for updates to spread it to others in the community.
-<iframe style="border: 0" src="https://ghbtns.com/github-btn.html?user=bitbeatjs&repo=core&type=star&count=true" frameborder="0" scrolling="0" width="150" height="20" title="GitHub"></iframe>
-<iframe style="border: 0" src="https://ghbtns.com/github-btn.html?user=bitbeatjs&repo=core&type=watch&count=true&v=2" frameborder="0" scrolling="0" width="150" height="20" title="GitHub"></iframe>
 
 ## Success stories and projects using bitbeat
 May send me a message with your project which is using bitbeat to link it in here.<br>

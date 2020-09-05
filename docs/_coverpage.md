@@ -1,9 +1,6 @@
 ![logo](_media/icon.svg)
 
-# bitbeat <small>0.0.1</small>
-
-><iframe src="https://ghbtns.com/github-btn.html?user=bitbeatjs&repo=core&type=star&count=true" frameborder="0" scrolling="0" width="150" height="20" title="GitHub"></iframe>
-><iframe src="https://ghbtns.com/github-btn.html?user=bitbeatjs&repo=core&type=watch&count=true&v=2" frameborder="0" scrolling="0" width="150" height="20" title="GitHub"></iframe>
+# bitbeat <small id="version-core">0.0.10</small>
 
 -   <b>Simple</b> <small>to use, extend and develop</small>
 -   <b>Modular</b> <small>by adding only the modules you need</small>
