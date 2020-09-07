@@ -4,6 +4,7 @@ import { RunParameters, Input, Inputs } from './action';
 import ActionMiddleware from './middlewares/actionMiddleware';
 import Boot from './boot';
 import BaseStructure from './baseStructure';
+import BaseSubStructure from './baseSubStructure';
 import Cli from './cli';
 import Configuration from './config';
 import Connector from './connector';
@@ -62,6 +63,7 @@ interface Constructor {
 export {
     Boot,
     BaseStructure,
+    BaseSubStructure,
     defaultPriority,
     Configuration,
     DirectorySettings,

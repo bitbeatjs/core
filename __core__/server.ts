@@ -6,10 +6,10 @@ import {
 } from './index';
 import Action from './action';
 import Connection from './connection';
-import BaseStructure from './baseStructure';
+import BaseSubStructure from './baseSubStructure';
 import { filter } from 'lodash';
 
-export default class Server extends BaseStructure {
+export default class Server extends BaseSubStructure {
     /**
      * The default store for all connections to this server.
      */

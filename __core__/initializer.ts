@@ -1,7 +1,7 @@
 import { defaultPriority, InitializerMiddleware } from './index';
-import BaseStructure from './baseStructure';
+import BaseSubStructure from './baseSubStructure';
 
-export default class Initializer extends BaseStructure {
+export default class Initializer extends BaseSubStructure {
     /**
      * Set the start priority for the server.
      */

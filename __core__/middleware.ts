@@ -1,6 +1,6 @@
-import BaseStructure from './baseStructure';
+import BaseSubStructure from './baseSubStructure';
 
-export default class Middleware extends BaseStructure {
+export default class Middleware extends BaseSubStructure {
     constructor() {
         super();
     }
@@ -8,30 +8,30 @@ export default class Middleware extends BaseStructure {
     /**
      * The function to run before running the provide function.
      */
-    public async beforeProvide(instance: BaseStructure): Promise<void> {}
+    public async beforeProvide(instance: BaseSubStructure): Promise<void> {}
 
     /**
      * The function to run after running the provide function.
      */
-    public async afterProvide(instance: BaseStructure): Promise<void> {}
+    public async afterProvide(instance: BaseSubStructure): Promise<void> {}
 
     /**
      * The function to run before running the initialize function.
      */
-    public async beforeInitialize(instance: BaseStructure): Promise<void> {}
+    public async beforeInitialize(instance: BaseSubStructure): Promise<void> {}
 
     /**
      * The function to run after running the initialize function.
      */
-    public async afterInitialize(instance: BaseStructure): Promise<void> {}
+    public async afterInitialize(instance: BaseSubStructure): Promise<void> {}
 
     /**
      * The function to run before running the unload function.
      */
-    public async beforeUnload(instance: BaseStructure): Promise<void> {}
+    public async beforeUnload(instance: BaseSubStructure): Promise<void> {}
 
     /**
      * The function to run after running the unload function.
      */
-    public async afterUnload(instance: BaseStructure): Promise<void> {}
+    public async afterUnload(instance: BaseSubStructure): Promise<void> {}
 }

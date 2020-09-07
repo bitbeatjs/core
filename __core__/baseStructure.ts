@@ -1,5 +1,8 @@
 import StateSubscriber from 'state-subscriber';
 import { defaultPriority } from './index';
+import Configuration from './config';
+import { merge } from 'lodash';
+import { getInstance } from '../index';
 
 export default class BaseStructure extends StateSubscriber {
     /**
