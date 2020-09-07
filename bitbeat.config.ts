@@ -84,7 +84,7 @@ export default {
             start: true,
             run: false,
             repeatable: false,
-            middlewares: new Set([ServerMiddleware, ConnectionMiddleware]),
+            middlewares: new Set([ServerMiddleware]),
         },
         tasks: {
             type: Task,

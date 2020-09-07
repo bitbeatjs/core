@@ -7,6 +7,7 @@ import {
 import Action from './action';
 import Connection from './connection';
 import BaseStructure from './baseStructure';
+import { getInstance } from "../bin/bootup";
 
 export default class Server extends BaseStructure {
     /**
@@ -78,6 +79,22 @@ export default class Server extends BaseStructure {
      * The function to stop the server.
      */
     public async stop(): Promise<void> {}
+
+    /**
+     * Get all connection middlewares of the server.
+     */
+    public getConnectionMiddlewares(): Set<ConnectionMiddleware> {
+        return new Set([...this.middlewares]
+          .map((instance: any): ServerMiddleware | ConnectionMiddleware | undefined => {
+              if (typeof instance === 'function') {
+                  return getInstance(instance);
+              }
+
+              return instance;
+          })
+          .filter((x: any) => !!x)
+          .filter((instance: any) => instance instanceof ConnectionMiddleware)) as Set<ConnectionMiddleware>
+    }
 
     /**
      * Add a connection to the connections from the server.
