@@ -1,9 +1,8 @@
 import StateSubscriber from 'state-subscriber';
 import { Socket } from 'net';
 import { createHash } from 'crypto';
-import { ConnectionMiddleware, Server } from './index';
+import { Server } from './index';
 import { logger } from '../index';
-import * as Throttle from 'promise-parallel-throttle';
 
 export default class Connection extends StateSubscriber {
     public secure: boolean;
@@ -14,13 +13,13 @@ export default class Connection extends StateSubscriber {
     public connectionTime: number = Date.now();
     public keepAliveInterval: NodeJS.Timer;
     public checkInterval = 30000;
-    private readonly recycleFunction: () => Promise<void>;
+    private readonly recycleFunction: () => Promise<void> | void;
 
     constructor(
         server: Server,
         connection: Socket,
         secure = false,
-        recycleFunction: () => Promise<void>
+        recycleFunction: () => (Promise<void> | void),
     ) {
         super();
         this.server = server;
@@ -48,31 +47,6 @@ export default class Connection extends StateSubscriber {
 
     public async close(): Promise<void> {
         logger.debug(`Closing connection '${this.id}'.`);
-
-        const connectionMiddlewares = this.server.getMiddlewaresOfType(
-            ConnectionMiddleware
-        ) as Set<ConnectionMiddleware>;
-
-        // run each connection middleware beforeDestroy method
-        await Throttle.all(
-            [
-                ...connectionMiddlewares,
-            ].map((conn: ConnectionMiddleware) => async () =>
-                await conn.beforeDestroy(this, this.server)
-            ),
-            { maxInProgress: 1 }
-        );
-
-        // run each connection middleware afterDestroy method
-        await Throttle.all(
-            [
-                ...connectionMiddlewares,
-            ].map((conn: ConnectionMiddleware) => async () =>
-                await conn.afterDestroy(this, this.server)
-            ),
-            { maxInProgress: 1 }
-        );
-
         clearInterval(this.keepAliveInterval);
         logger.debug(`Closed connection '${this.id}'.`);
     }

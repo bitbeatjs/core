@@ -7,7 +7,6 @@ import {
 import Action from './action';
 import Connection from './connection';
 import BaseStructure from './baseStructure';
-import { filter } from 'lodash';
 
 export default class Server extends BaseStructure {
     /**
@@ -80,22 +79,23 @@ export default class Server extends BaseStructure {
      */
     public async stop(): Promise<void> {}
 
-    public getMiddlewaresOfType(
-        type: typeof ServerMiddleware | typeof ConnectionMiddleware
-    ): Set<ServerMiddleware | ConnectionMiddleware> {
-        return new Set(
-            filter([...this.middlewares], (item) => item instanceof type)
-        );
-    }
-
+    /**
+     * Add a connection to the connections from the server.
+     */
     public addConnection(conn: Connection): void {
         this.connections.add(conn);
     }
 
+    /**
+     * Get a connection from the connections from the server.
+     */
     public getConnection(origin: string): Connection | undefined {
         return [...this.connections].find((conn) => conn.ip === origin);
     }
 
+    /**
+     * Remove a connection from the connections from the server.
+     */
     public async removeConnection(conn: Connection): Promise<void> {
         await conn.close();
         this.connections.delete(conn);
