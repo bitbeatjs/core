@@ -6,11 +6,10 @@
 *.config.js
 *.config.yml
 !bitbeat.*.js
-docs
 .dockerignore
-docker/**/Dockerfile
 .idea
 __tests__
 bin/zip.sh
 gulpfile.js
 .eslintignore
+Dockerfile
