@@ -229,16 +229,14 @@ export default class Store extends StateSubscriber {
 
     /**
      * Add a external registered instance to the store.
-     * Set createInstance to true, if you are giving in a class and want to generate automatically an instance for this class.
+     * If you are giving in a class it will automatically create an instance of it.
      */
     public async register<Constr extends Constructor>(
         instance: InstanceType<Constr>,
-        createInstance = false,
         reboot = true
     ): Promise<InstanceType<Constr>> {
         const createdInstance = await this.createAndAddInstance(
             instance,
-            createInstance
         );
         this.next('register', {
             instances: new Set([createdInstance]),
@@ -252,9 +250,8 @@ export default class Store extends StateSubscriber {
      */
     private async createAndAddInstance<Constr extends Constructor>(
         instance: InstanceType<Constr>,
-        createInstance = false
     ): Promise<InstanceType<Constr>> {
-        if (createInstance) {
+        if (typeof instance === 'function') {
             instance = new instance();
         }
 
@@ -287,21 +284,13 @@ export default class Store extends StateSubscriber {
      * This will prevent the instance to reboot each time, but will reboot once after the bulk is added.
      */
     public async registerBulk<Constr extends Constructor>(
-        instances: Set<{
-            instance: InstanceType<Constr>;
-            createInstance?: boolean;
-        }>,
+        instances: Set<InstanceType<Constr>>,
         reboot = true,
     ): Promise<Set<InstanceType<Constr>>> {
         const outputInstances: Set<InstanceType<Constr>> = new Set();
         for (const entry of instances) {
-            if (!Object.prototype.hasOwnProperty.call(entry, 'createInstance')) {
-                entry.createInstance = false;
-            }
-
             const createdInstance = await this.createAndAddInstance(
-                entry.instance,
-                entry.createInstance
+                entry,
             );
             outputInstances.add(createdInstance);
             this.debug(`Registered instance '${createdInstance.name}'.`);
@@ -377,7 +366,6 @@ export default class Store extends StateSubscriber {
     public async registerUpdate<Constr extends Constructor>(
         oldInstance: InstanceType<Constr>,
         newInstance: InstanceType<Constr>,
-        createInstance = false
     ): Promise<InstanceType<Constr>> {
         if (!this.registeredInstances.has(oldInstance)) {
             throw new Error('Not registered.');
@@ -385,7 +373,7 @@ export default class Store extends StateSubscriber {
 
         await oldInstance.destroy();
         this.registeredInstances.delete(oldInstance);
-        await this.register(newInstance, createInstance);
+        await this.register(newInstance);
         this.debug(`Updated instance '${oldInstance.name}'.`);
         return newInstance;
     }
@@ -397,7 +385,6 @@ export default class Store extends StateSubscriber {
         instances: Set<{
             oldInstance: InstanceType<Constr>;
             newInstance: InstanceType<Constr>;
-            createInstance: boolean;
         }>,
         reboot = true
     ): Promise<Set<InstanceType<Constr>>> {
@@ -405,13 +392,8 @@ export default class Store extends StateSubscriber {
 
         for (const entry of instances) {
             this.registeredInstances.delete(entry.oldInstance);
-            if (!Object.prototype.hasOwnProperty.call(entry, 'createInstance')) {
-                entry.createInstance = false;
-            }
-
             const createdInstance = await this.createAndAddInstance(
                 entry.newInstance,
-                entry.createInstance
             );
             outputInstances.add(createdInstance);
         }
