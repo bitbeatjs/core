@@ -1,8 +1,0 @@
-1. [Getting started](#getting-started)
-2. [Development](#development)
-    1. [Basics](#basics)
-    2. [Default project structure](#default-project-structure)
-    3. [Startup cycle](#startup-cycle)
-    4. [Structures](#structures)
-3. [Do's and Don'ts](#dos-and-donts)
-4. [FAQ](#faq)
