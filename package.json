@@ -8,9 +8,7 @@
   "private": false,
   "typings": "./index.d.ts",
   "repository": "bitbeatjs/core",
-  "bin": {
-    "@bitbeat/core": "./bin/index.js"
-  },
+  "bin": "./bin/index.js",
   "bugs": {
     "url": "https://github.com/bitbeatjs/core/issues"
   },
