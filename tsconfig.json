@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     "strict": true,
     "types": ["node"],
+    "downlevelIteration": true,
     "resolveJsonModule": true
   },
   "files": [
