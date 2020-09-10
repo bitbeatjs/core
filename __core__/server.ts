@@ -1,15 +1,15 @@
 import {
     defaultPriority,
-    Status,
-    ServerMiddleware,
-    ConnectionMiddleware,
 } from './index';
 import Action from './action';
 import Connection from './connection';
-import BaseStructure from './baseStructure';
-import { getInstance } from "../bin/bootup";
+import ConnectionMiddleware from './middlewares/connectionMiddleware';
+import BaseSubStructure from './baseSubStructure';
+import Status from './status';
+import ServerMiddleware from './middlewares/serverMiddleware';
+import { getInstance } from '../index';
 
-export default class Server extends BaseStructure {
+export default class Server extends BaseSubStructure {
     /**
      * The default store for all connections to this server.
      */

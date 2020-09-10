@@ -1,7 +1,8 @@
-import { defaultPriority, ConnectorMiddleware } from './index';
-import BaseStructure from './baseStructure';
+import { defaultPriority } from './index';
+import BaseSubStructure from './baseSubStructure';
+import ConnectorMiddleware from './middlewares/connectionMiddleware';
 
-export default class Connector extends BaseStructure {
+export default class Connector extends BaseSubStructure {
     public startPriority: number = defaultPriority;
     public stopPriority: number = defaultPriority;
     public middlewares: Set<ConnectorMiddleware> = new Set<

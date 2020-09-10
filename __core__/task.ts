@@ -1,8 +1,8 @@
-import TaskMiddleware from './middlewares/taskMiddleware';
-import BaseStructure from './baseStructure';
 import { ScheduleOptions } from 'node-cron';
+import BaseSubStructure from './baseSubStructure';
+import TaskMiddleware from './middlewares/taskMiddleware';
 
-export default class Task extends BaseStructure {
+export default class Task extends BaseSubStructure {
     /**
      * Add middlewares to the task.
      */

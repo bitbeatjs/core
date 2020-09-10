@@ -16,14 +16,13 @@
   },
   "files": [
     "./index.ts",
-    "./bin/index.ts",
-    "./bin/bootup.ts",
     "./bitbeat.config.ts"
   ],
   "exclude": [
     "./node_modules"
   ],
   "include": [
+    "./bin",
     "./__core__",
     "./__tests__",
     "./actions",

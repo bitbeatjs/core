@@ -1,5 +1,6 @@
 import StateSubscriber from 'state-subscriber';
 import { defaultPriority } from './index';
+import { boot } from "../bin/bootup";
 
 export default class BaseStructure extends StateSubscriber {
     /**
@@ -57,4 +58,14 @@ export default class BaseStructure extends StateSubscriber {
      * like closing things which were opened in configure.
      */
     public async destroy(): Promise<void> {}
+
+    /**
+     * Override the instanceof method to ensure the compatibility for different versions.
+     */
+    static [Symbol.hasInstance](instance: BaseStructure): boolean | undefined {
+        const name = this.prototype.constructor.name.toString();
+        (this.prototype as any)[`_is${name}`] = true;
+        boot.debug(`Checking if '${instance.name || instance.constructor.name}' is an instance of ${name}.`);
+        return (instance.constructor.prototype[`_is${name}`] && instance.constructor.prototype[`_is${name}`] === (this.prototype as any)[`_is${name}`]);
+    }
 }

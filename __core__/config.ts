@@ -1,7 +1,7 @@
-import BaseStructure from './baseStructure';
 import { merge } from 'lodash';
+import BaseSubStructure from './baseSubStructure';
 
-export default class Configuration extends BaseStructure {
+export default class Configuration extends BaseSubStructure {
     /**
      * The default properties which shall be available in each environment.
      */
