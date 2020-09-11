@@ -26,7 +26,7 @@
     "test:production": "ava --config ava.production.config.js",
     "test:watch": "ava --watch",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build && npm run test && npm run test:production"
+    "prepublishOnly": "npm run test"
   },
   "dependencies": {
     "chokidar": "^3.4.2",
