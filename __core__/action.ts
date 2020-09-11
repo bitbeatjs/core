@@ -1,6 +1,6 @@
 import { Class } from 'type-fest';
 import ActionMiddleware from './middlewares/actionMiddleware';
-import BaseSubStructure from './baseSubStructure';
+import BaseStructure from './baseStructure';
 import Result from './result';
 import Server from './server';
 
@@ -27,7 +27,7 @@ export interface RunParameters {
     result: Result;
     raw: any;
 }
-export default class Action extends BaseSubStructure {
+export default class Action extends BaseStructure {
     /**
      * Add a short description to this action.
      */

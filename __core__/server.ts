@@ -4,12 +4,12 @@ import {
 import Action from './action';
 import Connection from './connection';
 import ConnectionMiddleware from './middlewares/connectionMiddleware';
-import BaseSubStructure from './baseSubStructure';
+import BaseStructure from './baseStructure';
 import Status from './status';
 import ServerMiddleware from './middlewares/serverMiddleware';
 import { getInstance } from '../index';
 
-export default class Server extends BaseSubStructure {
+export default class Server extends BaseStructure {
     /**
      * The default store for all connections to this server.
      */

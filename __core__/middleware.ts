@@ -1,7 +1,6 @@
 import BaseStructure from './baseStructure';
-import BaseSubStructure from './baseSubStructure';
 
-export default class Middleware extends BaseSubStructure {
+export default class Middleware extends BaseStructure {
     constructor() {
         super();
     }

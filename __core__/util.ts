@@ -1,6 +1,6 @@
-import BaseSubStructure from './baseSubStructure';
+import BaseStructure from './baseStructure';
 
-export default class Utility extends BaseSubStructure {
+export default class Utility extends BaseStructure {
     constructor() {
         super();
     }

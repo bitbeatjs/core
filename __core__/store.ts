@@ -316,8 +316,9 @@ export default class Store extends StateSubscriber {
         }
 
         await instance.destroy();
+        this.instances.delete(instance);
         this.registeredInstances.delete(instance);
-        this.linkRegistered();
+
         this.cache.simple._changedRegistered.add({
             newInstance: undefined,
             oldInstance: instance,
@@ -337,14 +338,16 @@ export default class Store extends StateSubscriber {
       instances: Set<InstanceType<Constr>>,
       reboot = true,
     ): Promise<Set<InstanceType<Constr>>> {
+        console.log(instances)
         for (const entry of instances) {
             if (!this.registeredInstances.has(entry)) {
                 throw new Error('Not registered.');
             }
 
             await entry.destroy();
+            this.instances.delete(entry);
             this.registeredInstances.delete(entry);
-            this.linkRegistered();
+
             this.cache.simple._changedRegistered.add({
                 newInstance: undefined,
                 oldInstance: entry,
@@ -372,6 +375,7 @@ export default class Store extends StateSubscriber {
         }
 
         await oldInstance.destroy();
+        this.instances.delete(oldInstance);
         this.registeredInstances.delete(oldInstance);
         await this.register(newInstance);
         this.debug(`Updated instance '${oldInstance.name}'.`);

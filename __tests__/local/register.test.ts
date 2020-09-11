@@ -70,8 +70,6 @@ test.serial('should update the server and use the new config and re-register it'
     }
 
     newServer.start = async () => {
-        const testConfig = store.getInstance(TestConfiguration);
-        console.log(testConfig?.value.name);
         console.log('Started.');
     };
     await store.registerUpdate(testServer, newServer);
@@ -81,7 +79,10 @@ test.serial('should update the server and use the new config and re-register it'
 test.serial('should delete the server and the config', async t => {
     let testServer = store.getInstance(TestServer);
     let testConfig = store.getInstance(TestConfiguration);
-    store.removeInstances(new Set([testServer, testConfig]));
+    await store.unregisterBulk(new Set([
+      testServer,
+      testConfig
+    ]));
     testServer = store.getInstance(TestServer);
     testConfig = store.getInstance(TestConfiguration);
     t.true(!testServer && !testConfig);
