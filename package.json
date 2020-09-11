@@ -3,6 +3,7 @@
   "description": "The core package of bitbeat.",
   "version": "0.0.14",
   "main": "index.js",
+  "keywords": ["bitbeat", "framework", "modular", "backend", "minimal"],
   "author": "Oliver Freudrich <info@oliverfreudrich.com> (https://oliverfreudrich.com)",
   "license": "MIT",
   "private": false,
