@@ -1,3 +1,2 @@
-gulpfile.js
-ava.local.config.js
-ava.production.config.js
+node_modules
+*.js

@@ -1,6 +1,5 @@
 // import the subclass
 import Action from './action';
-import { RunParameters, Input, Inputs } from './action';
 import ActionMiddleware from './middlewares/actionMiddleware';
 import Boot from './boot';
 import BaseStructure from './baseStructure';
@@ -49,9 +48,6 @@ export {
     TaskMiddleware,
     ConnectorMiddleware,
     Result,
-    RunParameters,
-    Inputs,
-    Input
 };
 export * from './defaultProperties';
 export * from './interfaces';

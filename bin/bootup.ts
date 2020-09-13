@@ -53,7 +53,7 @@ export default async (): Promise<void> => {
     const commands = ['start'];
 
     // the basic init boot function to export always the update
-    const initBoot = async (configPath: string) => {
+    const initBoot = async (configPath: string): Promise<void> => {
         boot = new Boot();
         await boot.init(undefined, configPath ? {
             configPath,

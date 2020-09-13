@@ -1,32 +1,9 @@
 import { Class } from 'type-fest';
 import ActionMiddleware from './middlewares/actionMiddleware';
 import BaseStructure from './baseStructure';
-import Result from './result';
 import Server from './server';
+import { Inputs, RunParameters } from './interfaces';
 
-export interface Input {
-    type: Class;
-    required: boolean;
-    default?: any;
-    example: any;
-    description:
-        | {
-              [language: string]: string;
-          }
-        | string;
-    validate?: (value: any, propertyName: string) => void | Promise<void>;
-    format?: (value: any, propertyName: string) => any | Promise<any>;
-}
-
-export interface Inputs {
-    [propertyName: string]: Input;
-}
-
-export interface RunParameters {
-    params: any;
-    result: Result;
-    raw: any;
-}
 export default class Action extends BaseStructure {
     /**
      * Add a short description to this action.
