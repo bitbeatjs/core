@@ -1,5 +1,5 @@
 import StateSubscriber from 'state-subscriber';
-import { defaultPriority } from './index';
+import { defaultPriority } from './defaultProperties';
 
 export default class BaseStructure extends StateSubscriber {
     /**

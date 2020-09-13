@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": ".",
     "declaration": true,
     "allowJs": true,
-    "module": "commonjs",
+    "module": "esnext",
     "target": "es6",
     "lib": ["es2017"],
     "moduleResolution": "node",

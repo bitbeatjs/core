@@ -1,13 +1,13 @@
 import {
     defaultPriority,
-} from './index';
+} from './defaultProperties';
 import Action from './action';
 import Connection from './connection';
 import ConnectionMiddleware from './middlewares/connectionMiddleware';
 import BaseStructure from './baseStructure';
 import Status from './status';
 import ServerMiddleware from './middlewares/serverMiddleware';
-import { getInstance } from '../index';
+import { getInstance } from '../bin/bootup';
 
 export default class Server extends BaseStructure {
     /**

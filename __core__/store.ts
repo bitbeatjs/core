@@ -1,19 +1,22 @@
-import Cache from './cache';
 import StateSubscriber from 'state-subscriber';
 import { Logger } from 'pino';
 import { FSWatcher, watch } from 'chokidar';
-import { name as packageName } from '../package.json';
 import pino from 'pino';
-import * as Throttle from 'promise-parallel-throttle';
-import I18n from './i18n';
 import { resolve, join } from 'path';
-import { Status, BaseStructure, Constructor, Task, Config, Boot } from './index';
-import * as Types from './index';
 import { filter } from 'lodash';
 import { Debugger } from 'debug';
 import { ScheduledTask } from 'node-cron';
 import { createWriteStream, WriteStream } from 'fs';
 import { PassThrough } from 'stream';
+import Cache from './cache';
+import { name as packageName } from '../package.json';
+import I18n from './i18n';
+import Status from './status';
+import BaseStructure from './baseStructure';
+import { Constructor, Config } from './interfaces';
+import Task from './task';
+import Boot from './boot';
+import * as Types from './index';
 
 export default class Store extends StateSubscriber {
     private readonly loggingStream?: WriteStream;

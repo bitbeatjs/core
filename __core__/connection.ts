@@ -2,7 +2,7 @@ import StateSubscriber from 'state-subscriber';
 import { Socket } from 'net';
 import { createHash } from 'crypto';
 import Server from './server';
-import { logger, boot } from '../index';
+import { logger, boot } from '../bin/bootup';
 
 export default class Connection extends StateSubscriber {
     public secure: boolean;

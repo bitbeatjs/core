@@ -24,48 +24,12 @@ import Utility from './util';
 import Result from './result';
 
 // ------------------------------------------------------ //
-// ---------------------- DEFAULTS ---------------------- //
-// ------------------------------------------------------ //
-const defaultPriority = 1000;
-
-// ------------------------------------------------------ //
-// --------------------- Interfaces --------------------- //
-// ------------------------------------------------------ //
-
-interface Config {
-    extends?: string[];
-    fileWatcherDelay?: number;
-    logDirectory: string;
-    directories: {
-        [name: string]: DirectorySettings;
-    };
-}
-
-interface DirectorySettings {
-    type: any;
-    path: string;
-    dependencies: Set<any>;
-    statusName?: string;
-    run: boolean;
-    start: boolean;
-    repeatable: boolean;
-    middlewares: Set<typeof Middleware>;
-}
-
-interface Constructor {
-    new (...args: any[]): any;
-}
-
-// ------------------------------------------------------ //
 // ----------------------- EXPORTS ---------------------- //
 // ------------------------------------------------------ //
 export {
     Boot,
     BaseStructure,
-    defaultPriority,
     Configuration,
-    DirectorySettings,
-    Config,
     Cli,
     Initializer,
     Action,
@@ -85,8 +49,9 @@ export {
     TaskMiddleware,
     ConnectorMiddleware,
     Result,
-    Constructor,
     RunParameters,
     Inputs,
     Input
 };
+export * from './defaultProperties';
+export * from './interfaces';

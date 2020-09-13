@@ -1,4 +1,4 @@
-import { defaultPriority } from './index';
+import { defaultPriority } from './defaultProperties';
 import BaseStructure from './baseStructure';
 import ConnectorMiddleware from './middlewares/connectionMiddleware';
 

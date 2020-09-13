@@ -1,9 +1,13 @@
-import { Boot, Events, Status, Store, Cli } from '../index';
 import pun from 'please-upgrade-node';
 import { Command } from 'commander';
-import packageJson from '../package.json';
 import { Logger } from 'pino';
 import { resolve } from 'path';
+import packageJson from '../package.json';
+import Boot from '../__core__/boot';
+import Events from '../__core__/events';
+import Status from '../__core__/status';
+import Store from '../__core__/store';
+import Cli from '../__core__/cli';
 
 let boot: Boot,
     store: Store,

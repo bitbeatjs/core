@@ -2,26 +2,26 @@ import { readdir, lstatSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import * as Throttle from 'promise-parallel-throttle';
 import { merge, groupBy, reduce } from 'lodash';
-import {
-    Store,
-    Status,
-    Middleware,
-    BaseStructure,
-    Task,
-    DirectorySettings,
-    Config,
-    Events,
-} from '../index';
 import StateSubscriber from 'state-subscriber';
-import {
-    version as packageVersion,
-    name as packageName,
-} from '../package.json';
 import { getPriority, NetworkInterfaceInfo, networkInterfaces } from 'os';
 import ms from 'ms';
 import { Debugger, debug } from 'debug';
 import { schedule, validate } from 'node-cron';
 import { PackageJson } from 'type-fest';
+import {
+    DirectorySettings,
+    Config,
+} from './interfaces';
+import BaseStructure from './baseStructure';
+import Store from './store';
+import Status from './status';
+import Middleware from './middleware';
+import Task from './task';
+import Events from './events';
+import {
+    version as packageVersion,
+    name as packageName,
+} from '../package.json';
 
 class Boot extends StateSubscriber {
     public readonly debug: Debugger;
