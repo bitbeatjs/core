@@ -2,7 +2,7 @@ import {
     Action,
     ActionMiddleware,
     Config,
-    Configuration, ConnectionMiddleware,
+    Configuration,
     Connector, ConnectorMiddleware,
     Initializer,
     InitializerMiddleware,
