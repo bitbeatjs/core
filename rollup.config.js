@@ -12,7 +12,6 @@ export default new Promise((res) => {
   glob('**/*.ts', {
     ignore: ['node_modules/**', '**/*.d.ts'],
   }, (err, matches) => {
-    console.log(matches)
     config = config.concat(matches.map((file) => ({
       input: file,
       output: {
@@ -56,7 +55,6 @@ export default new Promise((res) => {
         'chokidar'
       ],
     })));
-    console.log(config);
     res(config);
   });
 });
