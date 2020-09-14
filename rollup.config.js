@@ -1,5 +1,6 @@
 import json from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
+import eslint from '@rbnlffl/rollup-plugin-eslint';
 import sucrase from '@rollup/plugin-sucrase';
 import resolve from '@rollup/plugin-node-resolve';
 import { sync } from 'glob';
@@ -8,13 +9,14 @@ import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import { readFileSync } from 'fs';
 import { createHash } from 'crypto';
 import Throttle from 'promise-parallel-throttle';
-import { CLIEngine } from 'eslint';
+import analyze from 'rollup-plugin-analyzer';
 
 const simpleFileCache = {};
 export default async () => {
   const files = sync('**/*.ts', {
     ignore: ['node_modules/**', '**/*.d.ts'],
   });
+
   await Throttle.all(files.map((file, index) => async () => {
     try {
       const hash = createHash('sha1').update(readFileSync(file)).digest('hex');
@@ -30,11 +32,6 @@ export default async () => {
       files.splice(index, 1);
     }
   }));
-  const engine = new CLIEngine();
-  const result = engine.executeOnFiles(files);
-  if (result.errorCount !== 0) {
-    throw new Error(engine.getFormatter('stylish')(report.results));
-  }
 
   return files.map((file) => ({
     input: file,
@@ -42,6 +39,10 @@ export default async () => {
       dir: dirname(file),
     },
     plugins: [
+      analyze(),
+      eslint({
+        throwOnError: true,
+      }),
       resolve({
         extensions: ['.js', '.ts']
       }),
