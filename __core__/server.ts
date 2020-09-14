@@ -1,6 +1,4 @@
-import {
-    defaultPriority,
-} from './defaultProperties';
+import { defaultPriority } from './defaultProperties';
 import Action from './action';
 import Connection from './connection';
 import ConnectionMiddleware from './middlewares/connectionMiddleware';

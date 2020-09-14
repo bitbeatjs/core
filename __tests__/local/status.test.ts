@@ -1,11 +1,6 @@
-import {
-    Store,
-    Boot,
-    Server,
-    Configuration,
-    Status,
-} from '../../index';
+import { Boot, Configuration, Server, Status, Store } from '../../index';
 import test from 'ava';
+
 let boot: Boot, store: Store;
 
 class TestServer extends Server {

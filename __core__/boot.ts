@@ -1,27 +1,21 @@
-import { readdir, lstatSync, existsSync } from 'fs';
+import { existsSync, lstatSync, readdir } from 'fs';
 import { resolve } from 'path';
 import * as Throttle from 'promise-parallel-throttle';
-import { merge, groupBy, reduce } from 'lodash';
+import { groupBy, merge, reduce } from 'lodash';
 import StateSubscriber from 'state-subscriber';
 import { getPriority, NetworkInterfaceInfo, networkInterfaces } from 'os';
 import ms from 'ms';
-import { Debugger, debug } from 'debug';
+import { debug, Debugger } from 'debug';
 import { schedule, validate } from 'node-cron';
 import { PackageJson } from 'type-fest';
-import {
-    DirectorySettings,
-    Config,
-} from './interfaces';
+import { Config, DirectorySettings } from './interfaces';
 import BaseStructure from './baseStructure';
 import Store from './store';
 import Status from './status';
 import Middleware from './middleware';
 import Task from './task';
 import Events from './events';
-import {
-    version as packageVersion,
-    name as packageName,
-} from '../package.json';
+import { name as packageName, version as packageVersion } from '../package.json';
 
 class Boot extends StateSubscriber {
     public readonly debug: Debugger;
@@ -1025,10 +1019,8 @@ class Boot extends StateSubscriber {
     /*
      * This function is useful, when you want to async await a register of a new instance.
      */
-    public async awaitRegister(store = this.store): Promise<void> {
+    public async awaitRegister(store: Store = this.store): Promise<void> {
         return new Promise((res, rej) => {
-            setTimeout(() => rej('Timeout.'), 5000);
-
             const bootCycle = (status: Status) => {
                 if (status === Status.started) {
                     this.removeListener(Events.status, bootCycle);
@@ -1039,8 +1031,12 @@ class Boot extends StateSubscriber {
             const registerCycle = () => {
                 this.subscribe(Events.status, bootCycle);
             };
-
             store.subscribe('register', registerCycle);
+            setTimeout(() => {
+                this.removeListener(Events.status, bootCycle);
+                store.removeListener('register', registerCycle);
+                rej('Timeout.');
+            }, 5000);
         });
     };
 

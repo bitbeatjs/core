@@ -3,10 +3,15 @@ import {
     ActionMiddleware,
     Config,
     Configuration,
-    Connector, ConnectorMiddleware,
+    Connector,
+    ConnectorMiddleware,
     Initializer,
     InitializerMiddleware,
-    Middleware, Server, ServerMiddleware, Task, TaskMiddleware,
+    Middleware,
+    Server,
+    ServerMiddleware,
+    Task,
+    TaskMiddleware,
     Utility,
 } from './index';
 

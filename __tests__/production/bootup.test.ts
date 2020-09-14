@@ -1,9 +1,7 @@
-import {
-    Store,
-    Boot,
-} from '../../index';
+import { Boot, Store } from '../../index';
 import test from 'ava';
 import ms from 'ms';
+
 let boot: Boot, store: Store;
 
 test.before(async t => {
