@@ -1,21 +1,24 @@
 import json from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
-import eslint from '@rbnlffl/rollup-plugin-eslint';
 import sucrase from '@rollup/plugin-sucrase';
 import resolve from '@rollup/plugin-node-resolve';
 import { sync } from 'glob';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import { readFileSync } from 'fs';
 import { createHash } from 'crypto';
 import Throttle from 'promise-parallel-throttle';
 import analyze from 'rollup-plugin-analyzer';
+import tsConfig from './tsconfig.json';
 
 const simpleFileCache = {};
 export default async () => {
-  const files = sync('**/*.ts', {
-    ignore: ['node_modules/**', '**/*.d.ts'],
-  });
+  const files = [
+    ...tsConfig.files,
+    ...tsConfig.include.reduce((arr, dir) => arr = arr.concat(sync(join(dir, '/**', '/*.ts'), {
+      ignore: ['node_modules/**', '**/*.d.ts'],
+    })), [])
+  ];
 
   await Throttle.all(files.map((file, index) => async () => {
     try {
@@ -40,9 +43,6 @@ export default async () => {
     },
     plugins: [
       analyze(),
-      eslint({
-        throwOnError: true,
-      }),
       resolve({
         extensions: ['.js', '.ts']
       }),
