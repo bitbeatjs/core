@@ -15,6 +15,7 @@ export default class Cli {
         timeout: number;
     };
     public busy = false;
+    public stop = false;
     public debug: Debugger | any;
 
     constructor(
@@ -34,13 +35,14 @@ export default class Cli {
                 }
 
                 this.busy = true;
+                this.stop = sig !== 'exit';
                 const timer = setTimeout(() => {
                     process.emit('beforeExit', 1);
                     process.removeListener(signal, handleListener);
                     console.error('Timeout while cleaning up.');
                     process.exit(1);
                 }, this.options.timeout);
-                this.debug(`Signal '${sig}' with code '${signal}' incoming.`);
+                this.debug(`Signal '${sig}' ${sig !== signal ? `with code '${signal}' ` : ''}incoming.`);
 
                 (async () => {
                     try {
@@ -68,5 +70,11 @@ export default class Cli {
         this.debug(`Started booting ${name}.`);
         await this.options.start();
         this.debug(`Finished booting ${name}.`);
+        const tick = () => {
+            if (!this.stop) {
+                setImmediate(tick);
+            }
+        };
+        tick();
     }
 }
