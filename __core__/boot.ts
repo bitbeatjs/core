@@ -230,7 +230,6 @@ class Boot extends StateSubscriber {
 
             store.logger.info('Exiting...');
             await store.close();
-            this.debug('Cleaned up queues and redis.');
             store.debug('Closed store.');
             this.next(Events.status, Status.exit);
             this.debug('Exit boot.');

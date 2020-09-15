@@ -1,3 +1,6 @@
+import { debug, Debugger } from 'debug';
+import { name } from '../package.json';
+
 export default class Cli {
     private readonly signals: (NodeJS.Signals | string)[] = [
         'SIGINT',
@@ -12,6 +15,7 @@ export default class Cli {
         timeout: number;
     };
     public busy = false;
+    public debug: Debugger | any;
 
     constructor(
         options: {
@@ -23,7 +27,7 @@ export default class Cli {
     ) {
         this.options = options;
 
-        this.signals.forEach((signal): void => {
+        this.signals.forEach((sig): void => {
             const handleListener = (signal: NodeJS.Signals): void => {
                 if (this.busy) {
                     return;
@@ -31,14 +35,18 @@ export default class Cli {
 
                 this.busy = true;
                 const timer = setTimeout(() => {
+                    process.emit('beforeExit', 1);
                     process.removeListener(signal, handleListener);
                     console.error('Timeout while cleaning up.');
                     process.exit(1);
                 }, this.options.timeout);
+                this.debug(`Signal '${sig}' with code '${signal}' incoming.`);
 
                 (async () => {
                     try {
+                        process.emit('beforeExit', 0);
                         await this.options.shutdown();
+                        process.emit('beforeExit', 0);
                         clearTimeout(timer);
                         process.removeListener(signal, handleListener);
                         process.exit(0);
@@ -49,13 +57,16 @@ export default class Cli {
                     }
                 })();
             };
-            process.addListener(signal as NodeJS.Signals, handleListener);
+            process.addListener(sig as NodeJS.Signals, handleListener);
         });
 
         return this.initialize() as any;
     }
 
     async initialize(): Promise<void> {
+        this.debug = debug(`${name}:cli`);
+        this.debug(`Started booting ${name}.`);
         await this.options.start();
+        this.debug(`Finished booting ${name}.`);
     }
 }
