@@ -1,5 +1,6 @@
 import { debug, Debugger } from 'debug';
 import { name } from '../package.json';
+import Boot from './boot';
 
 export default class Cli {
     private readonly signals: (NodeJS.Signals | string)[] = [
@@ -78,7 +79,7 @@ export default class Cli {
         await this.options.start();
         this.debug(`Finished booting ${name}.`);
 
-        if (!this.options.keepAlive || (Object.prototype.hasOwnProperty.call(process.env, 'KEEP_ALIVE') && process.env.KEEP_ALIVE)) {
+        if (!this.options.keepAlive || !Boot.getEnvVar('KEEP_ALIVE', true)) {
             this.debug(`Keep alive disabled.`);
             return;
         }

@@ -82,8 +82,8 @@ class Boot extends StateSubscriber {
     public generateDebugger(name: string): Debugger {
         const scopedDebugger = debug(`${this.name}:${name}`);
 
-        if (Boot.getEnvVar('BITBEAT_DEBUG', true)) {
-            debug.enable(Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') || `${this.name}:*`);
+        if (Boot.getEnvVar('BITBEAT_DEBUG', true) as boolean) {
+            debug.enable(Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string || `${this.name}:*`);
         }
 
         return scopedDebugger;
@@ -141,14 +141,14 @@ class Boot extends StateSubscriber {
     /**
      * Get an environment variable parsed.
      */
-    public static getEnvVar(name: string, convertToBoolean = false): any {
+    public static getEnvVar(name: string, convertToBoolean = false): string | boolean | undefined {
         name = name.toUpperCase();
 
         if (!~name.toLowerCase().indexOf('bitbeat') && (process.env.BITBEAT_SCOPED?.toLowerCase() === 'true' || process.env.BITBEAT_SCOPED === '1')) {
             name = `BITBEAT_${name.toUpperCase()}`;
         }
 
-        if (!process.env[name]) {
+        if (!Object.prototype.hasOwnProperty.call(process.env, name)) {
             return;
         }
 
