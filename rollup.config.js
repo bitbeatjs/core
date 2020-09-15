@@ -1,15 +1,15 @@
+import Throttle from 'promise-parallel-throttle';
+import analyze from 'rollup-plugin-analyzer';
 import json from '@rollup/plugin-json';
-import { terser } from 'rollup-plugin-terser';
-import sucrase from '@rollup/plugin-sucrase';
 import resolve from '@rollup/plugin-node-resolve';
-import { sync } from 'glob';
+import sucrase from '@rollup/plugin-sucrase';
+import tsConfig from './tsconfig.json';
+import { createHash } from 'crypto';
 import { dirname, join } from 'path';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import { readFileSync } from 'fs';
-import { createHash } from 'crypto';
-import Throttle from 'promise-parallel-throttle';
-import analyze from 'rollup-plugin-analyzer';
-import tsConfig from './tsconfig.json';
+import { sync } from 'glob';
+import { terser } from 'rollup-plugin-terser';
 
 const simpleFileCache = {};
 export default async () => {

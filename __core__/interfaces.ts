@@ -70,8 +70,8 @@ interface RunParameters {
 export {
   Cache,
   Config,
-  DirectorySettings,
   Constructor,
+  DirectorySettings,
   Input,
   Inputs,
   RunParameters
