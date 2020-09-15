@@ -78,7 +78,7 @@ export default class Cli {
         await this.options.start();
         this.debug(`Finished booting ${name}.`);
 
-        if (!this.options.keepAlive && !process.env.KEEP_ALIVE) {
+        if (!this.options.keepAlive || (Object.prototype.hasOwnProperty.call(process.env, 'KEEP_ALIVE') && process.env.KEEP_ALIVE)) {
             this.debug(`Keep alive disabled.`);
             return;
         }
