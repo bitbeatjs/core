@@ -13,6 +13,7 @@ export default class Cli {
         restart: () => Promise<void>;
         shutdown: () => Promise<void>;
         timeout: number;
+        keepAlive: boolean;
     };
     public busy = false;
     public stop = false;
@@ -24,8 +25,13 @@ export default class Cli {
             restart: () => Promise<void>;
             shutdown: () => Promise<void>;
             timeout: number;
+            keepAlive: boolean;
         }
     ) {
+        if (!Object.prototype.hasOwnProperty.call(options, 'keepAlive')) {
+            options.keepAlive = true;
+        }
+
         this.options = options;
 
         this.signals.forEach((sig): void => {
@@ -71,6 +77,13 @@ export default class Cli {
         this.debug(`Started booting ${name}.`);
         await this.options.start();
         this.debug(`Finished booting ${name}.`);
+
+        if (!this.options.keepAlive && !process.env.KEEP_ALIVE) {
+            this.debug(`Keep alive disabled.`);
+            return;
+        }
+
+        this.debug(`Keep alive enabled.`);
         const tick = () => {
             if (!this.stop) {
                 setImmediate(tick);
