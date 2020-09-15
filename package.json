@@ -1,7 +1,7 @@
 {
   "name": "@bitbeat/core",
   "description": "The core package of bitbeat.",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "main": "index.js",
   "keywords": [
     "bitbeat",
