@@ -13,6 +13,8 @@ import tsConfig from './tsconfig.json';
 
 const simpleFileCache = {};
 export default async () => {
+  // get all files by the tsconfig with globbing
+  // TODO: fix file watching on add and remove
   const files = [
     ...tsConfig.files,
     ...tsConfig.include.reduce((arr, dir) => arr = arr.concat(sync(join(dir, '/**', '/*.ts'), {
@@ -20,6 +22,7 @@ export default async () => {
     })), [])
   ];
 
+  // add a pretty simple file cache by hashes
   await Throttle.all(files.map((file, index) => async () => {
     try {
       const hash = createHash('sha1').update(readFileSync(file)).digest('hex');
@@ -36,6 +39,7 @@ export default async () => {
     }
   }));
 
+  // return the config for each file
   return files.map((file) => ({
     input: file,
     output: {
