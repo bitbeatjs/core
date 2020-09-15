@@ -2,9 +2,9 @@ import Middleware from './middleware';
 import { Class } from 'type-fest';
 import Result from './result';
 
-// ------------------------------------------------------ //
-// --------------------- Interfaces --------------------- //
-// ------------------------------------------------------ //
+/**
+ * Interfaces.
+ */
 interface Config {
   extends?: string[];
   fileWatcherDelay?: number;

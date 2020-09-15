@@ -22,9 +22,9 @@ import Task from './task';
 import Utility from './util';
 import Result from './result';
 
-// ------------------------------------------------------ //
-// ----------------------- EXPORTS ---------------------- //
-// ------------------------------------------------------ //
+/**
+ * Export area for core classes.
+ */
 export {
     Boot,
     BaseStructure,

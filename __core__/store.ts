@@ -572,6 +572,18 @@ export default class Store extends StateSubscriber {
     }
 
     /**
+     * Get path of an physical instance.
+     */
+    public getPathOfPhysicalInstance(instance: BaseStructure): string {
+        const [path] = Object.keys(this.cache.simple._fileMap).filter((path) => {
+            if (this.cache.simple._fileMap[path] === instance) {
+                return path;
+            }
+        });
+        return path;
+    }
+
+    /**
      * Register a physical file in the _fileMap, based on the registered instances.
      */
     public registerInstanceFromPath<Constr extends Constructor>(
@@ -644,7 +656,7 @@ export default class Store extends StateSubscriber {
     /**
      * Get a scheduled task based on an instance.
      */
-    public getScheduledTask(instance: Task): ScheduledTask | undefined {
+    public getScheduledTask(instance: Task | any): ScheduledTask | undefined {
         if (!(instance instanceof Task)) {
             return;
         }
