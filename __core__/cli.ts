@@ -53,6 +53,7 @@ export default class Cli {
                         process.removeListener(signal, handleListener);
                         process.exit(0);
                     } catch (e) {
+                        process.emit('beforeExit', 1);
                         process.removeListener(signal, handleListener);
                         console.error(e);
                         process.exit(1);
