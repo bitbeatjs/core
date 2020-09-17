@@ -121,7 +121,7 @@ export default class Store extends StateSubscriber {
     }
 
     /**
-     * Stop watching all necessary files.
+     * Remove the necessary files from the watcher.
      */
     public unwatchFiles(): void {
         this.watcher?.unwatch(
@@ -133,7 +133,7 @@ export default class Store extends StateSubscriber {
     }
 
     /**
-     * Start watching all necessary files.
+     * Add the necessary files to the watcher.
      */
     public watchFiles(): void {
         this.watcher?.add(
@@ -163,7 +163,7 @@ export default class Store extends StateSubscriber {
     }
 
     /**
-     * Start watching all necessary files.
+     * Stop watching all necessary files.
      */
     public async stopFileWatcher(): Promise<void> {
         this.watcher?.removeAllListeners();
