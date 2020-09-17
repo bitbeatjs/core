@@ -79,7 +79,7 @@ export default class Cli {
         await this.options.start();
         this.debug(`Finished booting ${name}.`);
 
-        if (!this.options.keepAlive || !Boot.getEnvVar('KEEP_ALIVE', true)) {
+        if (!this.options.keepAlive || (Boot.getEnvVar('KEEP_ALIVE') !== undefined && !Boot.getEnvVar('KEEP_ALIVE', true))) {
             this.debug(`Keep alive disabled.`);
             return;
         }
