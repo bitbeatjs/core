@@ -666,6 +666,32 @@ export default class Store extends StateSubscriber {
     }
 
     /**
+     * Start a scheduled task based on an instance.
+     */
+    public startScheduledTask(instance: Task): ScheduledTask | undefined {
+        const task = this.getScheduledTask(instance);
+
+        if (!task) {
+            this.debug(`Couldn't find a task for '${instance.name}'.`);
+            return;
+        }
+
+        task.start();
+        this.debug(`Started task '${(task as any)._instance.name}'.`);
+        return task;
+    }
+
+    /**
+     * Start all scheduled tasks.
+     */
+    public startAllScheduledTasks(): void {
+        [...this.tasks].forEach((task) => {
+            this.startScheduledTask((task as any)._instance as Task)
+        });
+        this.debug(`Started all tasks.`);
+    }
+
+    /**
      * Stop a scheduled task based on an instance.
      */
     public stopScheduledTask(instance: Task): ScheduledTask | undefined {
@@ -685,7 +711,9 @@ export default class Store extends StateSubscriber {
      * Stop all scheduled tasks.
      */
     public stopAllScheduledTasks(): void {
-        [...this.tasks].forEach((task) => task.stop());
+        [...this.tasks].forEach((task) => 
+            this.stopScheduledTask((task as any)._instance as Task)
+        );
         this.debug(`Stopped all tasks.`);
     }
 
@@ -710,7 +738,7 @@ export default class Store extends StateSubscriber {
      */
     public clearScheduledTasks(): void {
         [...this.tasks].forEach((task) =>
-            this.deleteScheduledTask((task as any)._instance)
+            this.deleteScheduledTask((task as any)._instance as Task)
         );
         this.debug(`Cleared all tasks.`);
     }
