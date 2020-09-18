@@ -441,14 +441,10 @@ class Boot extends StateSubscriber {
             // TODO: check if this is necessary
             // start all of the following in the cluster
             if (isMaster && Boot.getEnvVar('CLUSTER', true)) {
-                for (
-                    let i = 0,
-                        l =
-                            ((Boot.getEnvVar('CLUSTER_WORKERS') ||
-                                cpus().length) as number) - 1;
-                    i < l;
-                    i++
-                ) {
+                const workerCount =
+                    ((Boot.getEnvVar('CLUSTER_WORKERS') ||
+                        cpus().length) as number) - 1;
+                for (let i = 0, l = workerCount; i < l; i++) {
                     const worker = fork();
                     this.workerPool.add(worker);
                     this.debug(`Created worker '${worker.id}'.`);
