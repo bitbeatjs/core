@@ -16,7 +16,10 @@ import Status from './status';
 import Middleware from './middleware';
 import Task from './task';
 import Events from './events';
-import { name as packageName, version as packageVersion } from '../package.json';
+import {
+    name as packageName,
+    version as packageVersion,
+} from '../package.json';
 
 class Boot extends StateSubscriber {
     public readonly debug: Debugger;
@@ -408,26 +411,20 @@ class Boot extends StateSubscriber {
                 store.cache.simple._changedFiles.clear();
                 store.cache.simple._changedRegistered.clear();
                 store.on(
-                    
                     'register',
-
-                                       async ({
-
-                                               instances,
-
-                                               reboot,
-,
-                                       }: {
-                            instances: Set<BaseStructure>;
-                            reboot: boolean;
-                        }) => {
-                            if (!instances || !instances.size || !reboot) {
-                                return;
-                            }
-
-                            await this.restart(store);
+                    async ({
+                        instances,
+                        reboot,
+                    }: {
+                        instances: Set<BaseStructure>;
+                        reboot: boolean;
+                    }) => {
+                        if (!instances || !instances.size || !reboot) {
+                            return;
                         }
-                
+
+                        await this.restart(store);
+                    }
                 );
             }
 
@@ -441,22 +438,16 @@ class Boot extends StateSubscriber {
 
             this.debug('Finished starting boot.');
 
+            // TODO: check if this is necessary
             // start all of the following in the cluster
             if (isMaster && Boot.getEnvVar('CLUSTER', true)) {
                 for (
-                    
                     let i = 0,
-
-                                               l =
-
-                                                       (((Boot.getEnvVar('CLUSTER_WORKERS') ||
-
-                                                               cpus().length) as number)) - 1;
-
-                                       i < l;
-
-                                       i++
-                
+                        l =
+                            ((Boot.getEnvVar('CLUSTER_WORKERS') ||
+                                cpus().length) as number) - 1;
+                    i < l;
+                    i++
                 ) {
                     const worker = fork();
                     this.workerPool.add(worker);
