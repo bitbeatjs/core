@@ -94,6 +94,5 @@ export default class Action extends BaseStructure {
      * The function to be run when the action is called.
      * Its possible to use this with different types of servers.
      */
-    public async run(data: RunParameters): Promise<any> {
-    }
+    public async run(data: RunParameters): Promise<any> {}
 }

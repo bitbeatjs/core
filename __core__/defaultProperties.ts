@@ -3,6 +3,4 @@
  */
 const defaultPriority = 1000;
 
-export {
-  defaultPriority,
-};
+export { defaultPriority };

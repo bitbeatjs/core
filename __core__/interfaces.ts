@@ -6,73 +6,73 @@ import Result from './result';
  * Interfaces.
  */
 interface Config {
-  extends?: string[];
-  fileWatcherDelay?: number;
-  logDirectory: string;
-  directories: {
-    [name: string]: DirectorySettings;
-  };
+    extends?: string[];
+    fileWatcherDelay?: number;
+    logDirectory: string;
+    directories: {
+        [name: string]: DirectorySettings;
+    };
 }
 
 interface DirectorySettings {
-  type: any;
-  path: string;
-  dependencies: Set<any>;
-  statusName?: string;
-  run: boolean;
-  start: boolean;
-  repeatable: boolean;
-  middlewares: Set<typeof Middleware>;
+    type: any;
+    path: string;
+    dependencies: Set<any>;
+    statusName?: string;
+    run: boolean;
+    start: boolean;
+    repeatable: boolean;
+    middlewares: Set<typeof Middleware>;
 }
 
 interface Cache {
-  simple: {
-    _fileMap: {
-      [path: string]: InstanceType<Constructor>;
+    simple: {
+        _fileMap: {
+            [path: string]: InstanceType<Constructor>;
+        };
+        _changedFiles: Set<string>;
+        _changedRegistered: Set<{
+            oldInstance: InstanceType<Constructor> | undefined;
+            newInstance: InstanceType<Constructor> | undefined;
+        }>;
+        [key: string]: any;
     };
-    _changedFiles: Set<string>;
-    _changedRegistered: Set<{
-      oldInstance: InstanceType<Constructor> | undefined;
-      newInstance: InstanceType<Constructor> | undefined;
-    }>;
-    [key: string]: any;
-  };
 }
 
 interface Constructor {
-  new (...args: any[]): any;
+    new (...args: any[]): any;
 }
 
 interface Input {
-  type: Class;
-  required: boolean;
-  default?: any;
-  example: any;
-  description:
-    | {
-    [language: string]: string;
-  }
-    | string;
-  validate?: (value: any, propertyName: string) => void | Promise<void>;
-  format?: (value: any, propertyName: string) => any | Promise<any>;
+    type: Class;
+    required: boolean;
+    default?: any;
+    example: any;
+    description:
+        | {
+              [language: string]: string;
+          }
+        | string;
+    validate?: (value: any, propertyName: string) => void | Promise<void>;
+    format?: (value: any, propertyName: string) => any | Promise<any>;
 }
 
 interface Inputs {
-  [propertyName: string]: Input;
+    [propertyName: string]: Input;
 }
 
 interface RunParameters {
-  params: any;
-  result: Result;
-  raw: any;
+    params: any;
+    result: Result;
+    raw: any;
 }
 
 export {
-  Cache,
-  Config,
-  Constructor,
-  DirectorySettings,
-  Input,
-  Inputs,
-  RunParameters
+    Cache,
+    Config,
+    Constructor,
+    DirectorySettings,
+    Input,
+    Inputs,
+    RunParameters,
 };

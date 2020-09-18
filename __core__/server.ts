@@ -82,16 +82,23 @@ export default class Server extends BaseStructure {
      * Get all connection middlewares of the server.
      */
     public getConnectionMiddlewares(): Set<ConnectionMiddleware> {
-        return new Set([...this.middlewares]
-          .map((instance: any): ServerMiddleware | ConnectionMiddleware | undefined => {
-              if (typeof instance === 'function') {
-                  return getInstance(instance);
-              }
+        return new Set(
+            [...this.middlewares]
+                .map((instance: any):
+                    | ServerMiddleware
+                    | ConnectionMiddleware
+                    | undefined => {
+                    if (typeof instance === 'function') {
+                        return getInstance(instance);
+                    }
 
-              return instance;
-          })
-          .filter((x: any) => !!x)
-          .filter((instance: any) => instance instanceof ConnectionMiddleware)) as Set<ConnectionMiddleware>
+                    return instance;
+                })
+                .filter((x: any) => !!x)
+                .filter(
+                    (instance: any) => instance instanceof ConnectionMiddleware
+                )
+        ) as Set<ConnectionMiddleware>;
     }
 
     /**

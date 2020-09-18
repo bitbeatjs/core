@@ -19,7 +19,7 @@ export default class Connection extends StateSubscriber {
         server: Server,
         connection: Socket,
         secure = false,
-        recycleFunction: () => (Promise<void> | void),
+        recycleFunction: () => Promise<void> | void
     ) {
         super();
         this.server = server;
@@ -57,7 +57,13 @@ export default class Connection extends StateSubscriber {
     static [Symbol.hasInstance](instance: Connection): boolean | undefined {
         const name = this.prototype.constructor.name.toString();
         (this.prototype as any)[`_is${name}`] = true;
-        boot.debug(`Checking if '${instance.constructor.name}' is an instance of ${name}.`);
-        return (instance.constructor.prototype[`_is${name}`] && instance.constructor.prototype[`_is${name}`] === (this.prototype as any)[`_is${name}`]);
+        boot.debug(
+            `Checking if '${instance.constructor.name}' is an instance of ${name}.`
+        );
+        return (
+            instance.constructor.prototype[`_is${name}`] &&
+            instance.constructor.prototype[`_is${name}`] ===
+                (this.prototype as any)[`_is${name}`]
+        );
     }
 }

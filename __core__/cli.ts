@@ -20,15 +20,13 @@ export default class Cli {
     public stop = false;
     public debug: Debugger | any;
 
-    constructor(
-        options: {
-            start: () => Promise<void>;
-            restart: () => Promise<void>;
-            shutdown: () => Promise<void>;
-            timeout: number;
-            keepAlive: boolean;
-        }
-    ) {
+    constructor(options: {
+        start: () => Promise<void>;
+        restart: () => Promise<void>;
+        shutdown: () => Promise<void>;
+        timeout: number;
+        keepAlive: boolean;
+    }) {
         if (!Object.prototype.hasOwnProperty.call(options, 'keepAlive')) {
             options.keepAlive = true;
         }
@@ -49,7 +47,11 @@ export default class Cli {
                     console.error('Timeout while cleaning up.');
                     process.exit(1);
                 }, this.options.timeout);
-                this.debug(`Signal '${sig}' ${sig !== signal ? `with code '${signal}' ` : ''}incoming.`);
+                this.debug(
+                    `Signal '${sig}' ${
+                        sig !== signal ? `with code '${signal}' ` : ''
+                    }incoming.`
+                );
 
                 (async () => {
                     try {
@@ -79,7 +81,11 @@ export default class Cli {
         await this.options.start();
         this.debug(`Finished booting ${name}.`);
 
-        if (!this.options.keepAlive || (Boot.getEnvVar('KEEP_ALIVE') !== undefined && !Boot.getEnvVar('KEEP_ALIVE', true))) {
+        if (
+            !this.options.keepAlive ||
+            (Boot.getEnvVar('KEEP_ALIVE') !== undefined &&
+                !Boot.getEnvVar('KEEP_ALIVE', true))
+        ) {
             this.debug(`Keep alive disabled.`);
             return;
         }

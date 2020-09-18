@@ -35,11 +35,14 @@ export default class Store extends StateSubscriber {
     public watcher?: FSWatcher;
     private readonly bootDirectories: Config['directories'];
 
-    constructor(boot: Boot, config: {
-        instanceName: string;
-        logLevel?: string;
-        language?: string;
-    }) {
+    constructor(
+        boot: Boot,
+        config: {
+            instanceName: string;
+            logLevel?: string;
+            language?: string;
+        }
+    ) {
         super();
         this.debug = boot.generateDebugger('store');
         this.bootDirectories = boot.getConfig().directories;
@@ -62,13 +65,21 @@ export default class Store extends StateSubscriber {
         if (logPhysical) {
             const logThrough = new PassThrough();
 
-            this.logger = pino({
-                name: packageName,
-                level: process.env.LOG_LEVEL || config.logLevel,
-                timestamp: pino.stdTimeFunctions.epochTime,
-            }, logThrough);
+            this.logger = pino(
+                {
+                    name: packageName,
+                    level: process.env.LOG_LEVEL || config.logLevel,
+                    timestamp: pino.stdTimeFunctions.epochTime,
+                },
+                logThrough
+            );
 
-            this.loggingStream = createWriteStream(resolve(boot.getConfig().logDirectory, `${Date.now().toString()}.log`));
+            this.loggingStream = createWriteStream(
+                resolve(
+                    boot.getConfig().logDirectory,
+                    `${Date.now().toString()}.log`
+                )
+            );
             logThrough.pipe(this.loggingStream);
             logThrough.pipe(process.stdout);
         } else {
@@ -76,7 +87,12 @@ export default class Store extends StateSubscriber {
                 name: packageName,
                 level: process.env.LOG_LEVEL || config.logLevel,
                 timestamp: pino.stdTimeFunctions.epochTime,
-                prettyPrint: process.env.NODE_ENV !== 'production' && !Boot.getEnvVar('LOG_DISABLE_PRETTY_PRINT', true) as boolean,
+                prettyPrint:
+                    process.env.NODE_ENV !== 'production' &&
+                    (!Boot.getEnvVar(
+                        'LOG_DISABLE_PRETTY_PRINT',
+                        true
+                    ) as boolean),
             });
         }
     }
@@ -236,9 +252,7 @@ export default class Store extends StateSubscriber {
         instance: InstanceType<Constr>,
         reboot = true
     ): Promise<InstanceType<Constr>> {
-        const createdInstance = await this.createAndAddInstance(
-            instance,
-        );
+        const createdInstance = await this.createAndAddInstance(instance);
         this.next('register', {
             instances: new Set([createdInstance]),
             reboot,
@@ -250,7 +264,7 @@ export default class Store extends StateSubscriber {
      * Create and add an instance and run the configure function.
      */
     private async createAndAddInstance<Constr extends Constructor>(
-        instance: InstanceType<Constr>,
+        instance: InstanceType<Constr>
     ): Promise<InstanceType<Constr>> {
         if (typeof instance === 'function') {
             instance = new instance();
@@ -286,13 +300,11 @@ export default class Store extends StateSubscriber {
      */
     public async registerBulk<Constr extends Constructor>(
         instances: Set<InstanceType<Constr>>,
-        reboot = true,
+        reboot = true
     ): Promise<Set<InstanceType<Constr>>> {
         const outputInstances: Set<InstanceType<Constr>> = new Set();
         for (const entry of instances) {
-            const createdInstance = await this.createAndAddInstance(
-                entry,
-            );
+            const createdInstance = await this.createAndAddInstance(entry);
             outputInstances.add(createdInstance);
             this.debug(`Registered instance '${createdInstance.name}'.`);
         }
@@ -310,7 +322,7 @@ export default class Store extends StateSubscriber {
      */
     public async unregister<Constr extends Constructor>(
         instance: InstanceType<Constr>,
-        reboot = true,
+        reboot = true
     ): Promise<void> {
         if (!this.registeredInstances.has(instance)) {
             throw new Error('Not registered.');
@@ -336,10 +348,10 @@ export default class Store extends StateSubscriber {
      * This will prevent the instance to reboot each time, but will reboot once after the bulk is removed.
      */
     public async unregisterBulk<Constr extends Constructor>(
-      instances: Set<InstanceType<Constr>>,
-      reboot = true,
+        instances: Set<InstanceType<Constr>>,
+        reboot = true
     ): Promise<Set<InstanceType<Constr>>> {
-        console.log(instances)
+        console.log(instances);
         for (const entry of instances) {
             if (!this.registeredInstances.has(entry)) {
                 throw new Error('Not registered.');
@@ -369,7 +381,7 @@ export default class Store extends StateSubscriber {
      */
     public async registerUpdate<Constr extends Constructor>(
         oldInstance: InstanceType<Constr>,
-        newInstance: InstanceType<Constr>,
+        newInstance: InstanceType<Constr>
     ): Promise<InstanceType<Constr>> {
         if (!this.registeredInstances.has(oldInstance)) {
             throw new Error('Not registered.');
@@ -398,7 +410,7 @@ export default class Store extends StateSubscriber {
         for (const entry of instances) {
             this.registeredInstances.delete(entry.oldInstance);
             const createdInstance = await this.createAndAddInstance(
-                entry.newInstance,
+                entry.newInstance
             );
             outputInstances.add(createdInstance);
         }
@@ -418,8 +430,12 @@ export default class Store extends StateSubscriber {
     ): void {
         if (instance) {
             if (!this.checkRegisteredInstance(instance)) {
-                this.logger.debug(`Instance '${instance.name}' was not found in registered.`);
-                this.debug(`Instance '${instance.name}' was not found in registered.`);
+                this.logger.debug(
+                    `Instance '${instance.name}' was not found in registered.`
+                );
+                this.debug(
+                    `Instance '${instance.name}' was not found in registered.`
+                );
                 return;
             }
 
@@ -501,7 +517,10 @@ export default class Store extends StateSubscriber {
         name: string,
         version = -1
     ): BaseStructure | undefined {
-        const items = filter([...this.instances], (item) => item.name === name) as BaseStructure[];
+        const items = filter(
+            [...this.instances],
+            (item) => item.name === name
+        ) as BaseStructure[];
 
         if (!items.length) {
             this.debug(`Could not find instance.`);
@@ -575,11 +594,13 @@ export default class Store extends StateSubscriber {
      * Get path of an physical instance.
      */
     public getPathOfPhysicalInstance(instance: BaseStructure): string {
-        const [path] = Object.keys(this.cache.simple._fileMap).filter((path) => {
-            if (this.cache.simple._fileMap[path] === instance) {
-                return path;
+        const [path] = Object.keys(this.cache.simple._fileMap).filter(
+            (path) => {
+                if (this.cache.simple._fileMap[path] === instance) {
+                    return path;
+                }
             }
-        });
+        );
         return path;
     }
 
@@ -686,7 +707,7 @@ export default class Store extends StateSubscriber {
      */
     public startAllScheduledTasks(): void {
         [...this.tasks].forEach((task) => {
-            this.startScheduledTask((task as any)._instance as Task)
+            this.startScheduledTask((task as any)._instance as Task);
         });
         this.debug(`Started all tasks.`);
     }
@@ -711,7 +732,7 @@ export default class Store extends StateSubscriber {
      * Stop all scheduled tasks.
      */
     public stopAllScheduledTasks(): void {
-        [...this.tasks].forEach((task) => 
+        [...this.tasks].forEach((task) =>
             this.stopScheduledTask((task as any)._instance as Task)
         );
         this.debug(`Stopped all tasks.`);

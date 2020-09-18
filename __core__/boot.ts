@@ -3,11 +3,12 @@ import { resolve } from 'path';
 import * as Throttle from 'promise-parallel-throttle';
 import { groupBy, merge, reduce } from 'lodash';
 import StateSubscriber from 'state-subscriber';
-import { getPriority, NetworkInterfaceInfo, networkInterfaces } from 'os';
+import { getPriority, NetworkInterfaceInfo, networkInterfaces, cpus } from 'os';
 import ms from 'ms';
 import { debug, Debugger } from 'debug';
 import { schedule, validate } from 'node-cron';
 import { PackageJson } from 'type-fest';
+import { isMaster, fork, Worker } from 'cluster';
 import { Config, DirectorySettings } from './interfaces';
 import BaseStructure from './baseStructure';
 import Store from './store';
@@ -32,6 +33,7 @@ class Boot extends StateSubscriber {
         logDirectory: '',
         directories: {},
     };
+    private workerPool: Set<Worker> = new Set();
 
     constructor(
         options: {
@@ -49,7 +51,6 @@ class Boot extends StateSubscriber {
 
         // create the debug
         this.debug = this.generateDebugger('boot');
-
         this.ips = reduce(
             Object.values(Boot.getIPs()),
             (arr: any, item: any) => {
@@ -83,7 +84,10 @@ class Boot extends StateSubscriber {
         const scopedDebugger = debug(`${this.name}:${name}`);
 
         if (Boot.getEnvVar('BITBEAT_DEBUG', true) as boolean) {
-            debug.enable(Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string || `${this.name}:*`);
+            debug.enable(
+                (Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string) ||
+                    `${this.name}:*`
+            );
         }
 
         return scopedDebugger;
@@ -92,9 +96,12 @@ class Boot extends StateSubscriber {
     /**
      * Init the boot. Should run after the creation and before the start.
      */
-    public async init(store: Store = this.store, options?: {
-        configPath?: string;
-    }): Promise<void> {
+    public async init(
+        store: Store = this.store,
+        options?: {
+            configPath?: string;
+        }
+    ): Promise<void> {
         this.next(Events.status, Status.initializing);
         this.config = await this.loadCoreConfig(options?.configPath);
         const projectPackageJson = await this.loadProjectPackage();
@@ -120,7 +127,9 @@ class Boot extends StateSubscriber {
 
         // init the start and general states
         const directoryNames = Object.keys(this.config.directories);
-        const directoryStarts = directoryNames.filter((dir) => this.config.directories[dir].start);
+        const directoryStarts = directoryNames.filter(
+            (dir) => this.config.directories[dir].start
+        );
 
         directoryNames.forEach((dir) => {
             const name = this.config.directories[dir].statusName;
@@ -141,10 +150,17 @@ class Boot extends StateSubscriber {
     /**
      * Get an environment variable parsed.
      */
-    public static getEnvVar(name: string, convertToBoolean = false): string | boolean | undefined {
+    public static getEnvVar(
+        name: string,
+        convertToBoolean = false
+    ): string | boolean | undefined {
         name = name.toUpperCase();
 
-        if (!~name.toLowerCase().indexOf('bitbeat') && (process.env.BITBEAT_SCOPED?.toLowerCase() === 'true' || process.env.BITBEAT_SCOPED === '1')) {
+        if (
+            !~name.toLowerCase().indexOf('bitbeat') &&
+            (process.env.BITBEAT_SCOPED?.toLowerCase() === 'true' ||
+                process.env.BITBEAT_SCOPED === '1')
+        ) {
             name = `BITBEAT_${name.toUpperCase()}`;
         }
 
@@ -153,7 +169,10 @@ class Boot extends StateSubscriber {
         }
 
         if (convertToBoolean) {
-            return (process.env[name]?.toLowerCase() === 'true' || process.env[name] === '1');
+            return (
+                process.env[name]?.toLowerCase() === 'true' ||
+                process.env[name] === '1'
+            );
         }
 
         let value = process.env[name] || '';
@@ -213,17 +232,17 @@ class Boot extends StateSubscriber {
     /**
      * Shut the boot down gracefully.
      */
-    public async shutdown(
-        store: Store = this.store,
-    ): Promise<void> {
+    public async shutdown(store: Store = this.store): Promise<void> {
         try {
             this.next(Events.status, Status.shutdown);
             store.logger.info('Shutting down...');
             this.debug('Stopping boot.');
             await this.stop(store, false);
-            await Throttle.all([...store.getAllInstances()]
-              .map((instance) => async () =>
-                instance.destroy()));
+            await Throttle.all(
+                [...store.getAllInstances()].map((instance) => async () =>
+                    instance.destroy()
+                )
+            );
             await this.removeAllFromFileCache(store);
             this.debug('Stopped boot.');
             store.clearInstances();
@@ -232,6 +251,14 @@ class Boot extends StateSubscriber {
             await store.close();
             store.debug('Closed store.');
             this.next(Events.status, Status.exit);
+
+            if (isMaster && Boot.getEnvVar('CLUSTER', true)) {
+                for (const worker of this.workerPool) {
+                    worker.destroy();
+                    this.debug(`Destroyed worker '${worker.id}'.`);
+                }
+            }
+
             this.debug('Exit boot.');
         } catch (e) {
             store.logger.error(e.message);
@@ -243,7 +270,10 @@ class Boot extends StateSubscriber {
      * Check if has enabled and is enabled.
      */
     private static checkEnabled(instance: BaseStructure): boolean {
-        return Object.prototype.hasOwnProperty.call(instance, 'enable') && instance.enable;
+        return (
+            Object.prototype.hasOwnProperty.call(instance, 'enable') &&
+            instance.enable
+        );
     }
 
     /**
@@ -265,12 +295,17 @@ class Boot extends StateSubscriber {
             fileWatcherDelay: 300,
         };
         try {
-            config = (await import(resolve(this.coreDir, mainFile))).default as Config;
+            config = (await import(resolve(this.coreDir, mainFile)))
+                .default as Config;
 
             if (this.baseDir !== this.coreDir && configPath) {
-                config = merge(config, (await import(resolve(this.baseDir, configPath))).default as Config || {
-                    directories: {},
-                });
+                config = merge(
+                    config,
+                    ((await import(resolve(this.baseDir, configPath)))
+                        .default as Config) || {
+                        directories: {},
+                    }
+                );
             }
         } catch (e) {
             // don't do anything
@@ -295,19 +330,24 @@ class Boot extends StateSubscriber {
         const conf = {
             ...config,
         };
-        await Throttle.all((conf.extends || []).map((path) => async () => {
-            try {
-                const extendingConfig = await this.extendConfig((await import(resolve(path))).default as Config || {
-                    directories: {},
-                });
-                merge(extendingConfig, config);
-                merge(conf, extendingConfig);
-            } catch (e) {
-                // don't do anything
+        await Throttle.all(
+            (conf.extends || []).map((path) => async () => {
+                try {
+                    const extendingConfig = await this.extendConfig(
+                        ((await import(resolve(path))).default as Config) || {
+                            directories: {},
+                        }
+                    );
+                    merge(extendingConfig, config);
+                    merge(conf, extendingConfig);
+                } catch (e) {
+                    // don't do anything
+                }
+            }),
+            {
+                maxInProgress: 1,
             }
-        }), {
-            maxInProgress: 1,
-        });
+        );
         return conf;
     }
 
@@ -367,16 +407,28 @@ class Boot extends StateSubscriber {
             if (!isReboot) {
                 store.cache.simple._changedFiles.clear();
                 store.cache.simple._changedRegistered.clear();
-                store.on('register', async ({ instances, reboot }: {
-                    instances: Set<BaseStructure>;
-                    reboot: boolean;
-                }) => {
-                    if (!instances || !instances.size || !reboot) {
-                        return;
-                    }
+                store.on(
+                    
+                    'register',
 
-                    await this.restart(store);
-                });
+                                       async ({
+
+                                               instances,
+
+                                               reboot,
+,
+                                       }: {
+                            instances: Set<BaseStructure>;
+                            reboot: boolean;
+                        }) => {
+                            if (!instances || !instances.size || !reboot) {
+                                return;
+                            }
+
+                            await this.restart(store);
+                        }
+                
+                );
             }
 
             // start the watcher
@@ -388,6 +440,29 @@ class Boot extends StateSubscriber {
             }
 
             this.debug('Finished starting boot.');
+
+            // start all of the following in the cluster
+            if (isMaster && Boot.getEnvVar('CLUSTER', true)) {
+                for (
+                    
+                    let i = 0,
+
+                                               l =
+
+                                                       (((Boot.getEnvVar('CLUSTER_WORKERS') ||
+
+                                                               cpus().length) as number)) - 1;
+
+                                       i < l;
+
+                                       i++
+                
+                ) {
+                    const worker = fork();
+                    this.workerPool.add(worker);
+                    this.debug(`Created worker '${worker.id}'.`);
+                }
+            }
         } catch (e) {
             store.logger.error(e.message);
             throw e;
@@ -415,8 +490,8 @@ class Boot extends StateSubscriber {
                 instance.next(Events.status, Status.providing);
                 this.next(Status.providing, instance);
                 const middlewares = this.getMiddlewaresOfInstance(
-                  instance,
-                  store,
+                    instance,
+                    store
                 );
                 await Throttle.all(
                     [...middlewares].map((middleware: Middleware) => async () =>
@@ -465,42 +540,40 @@ class Boot extends StateSubscriber {
         await Throttle.all(
             initializePrios.map((group) => async () =>
                 await Throttle.all(
-                    initializeGroups[group].map(
-                        (instance: any) => async () => {
-                            if (!Boot.checkEnabled(instance)) {
-                                return;
-                            }
-
-                            if (!instance.initialize) {
-                                return;
-                            }
-
-                            instance.next(Events.status, Status.initializing);
-                            this.next(Status.initializing, instance);
-                            const middlewares = this.getMiddlewaresOfInstance(
-                              instance,
-                              store,
-                            );
-                            await Throttle.all(
-                                [...middlewares].map(
-                                    (middleware: Middleware) => async () =>
-                                        middleware.beforeInitialize(
-                                            instance
-                                        )
-                                )
-                            );
-                            await instance.initialize();
-                            await Throttle.all(
-                                [...middlewares].map(
-                                    (middleware: Middleware) => async () =>
-                                        middleware.afterInitialize(instance)
-                                )
-                            );
-                            instance.next(Events.init, true);
-                            instance.next(Events.status, Status.initialized);
-                            this.next(Status.initialized, instance);
+                    initializeGroups[group].map((instance: any) => async () => {
+                        if (!Boot.checkEnabled(instance)) {
+                            return;
                         }
-                    )
+
+                        if (!instance.initialize) {
+                            return;
+                        }
+
+                        instance.next(Events.status, Status.initializing);
+                        this.next(Status.initializing, instance);
+                        const middlewares = this.getMiddlewaresOfInstance(
+                            instance,
+                            store
+                        );
+                        await Throttle.all(
+                            [
+                                ...middlewares,
+                            ].map((middleware: Middleware) => async () =>
+                                middleware.beforeInitialize(instance)
+                            )
+                        );
+                        await instance.initialize();
+                        await Throttle.all(
+                            [
+                                ...middlewares,
+                            ].map((middleware: Middleware) => async () =>
+                                middleware.afterInitialize(instance)
+                            )
+                        );
+                        instance.next(Events.init, true);
+                        instance.next(Events.status, Status.initialized);
+                        this.next(Status.initialized, instance);
+                    })
                 )
             ),
             {
@@ -548,17 +621,21 @@ class Boot extends StateSubscriber {
                             instance.next(Events.status, Status.starting);
                             this.next(Status.starting, instance);
                             const middlewares = this.getMiddlewaresOfInstance(
-                              instance,
-                              store,
+                                instance,
+                                store
                             );
                             await Throttle.all(
-                                [...middlewares].map((middleware: any) => async () =>
+                                [
+                                    ...middlewares,
+                                ].map((middleware: any) => async () =>
                                     middleware.beforeStart(instance)
                                 )
                             );
                             await instance.start();
                             await Throttle.all(
-                                [...middlewares].map((middleware: any) => async () =>
+                                [
+                                    ...middlewares,
+                                ].map((middleware: any) => async () =>
                                     middleware.afterStart(instance)
                                 )
                             );
@@ -592,9 +669,7 @@ class Boot extends StateSubscriber {
         const stopInstances = [...instances].filter(
             (instance) => instance.stopPriority
         );
-        stopInstances.sort(
-            (a: any, b: any) => a.stopPriority - b.stopPriority
-        );
+        stopInstances.sort((a: any, b: any) => a.stopPriority - b.stopPriority);
         const stopGroups = groupBy(stopInstances, 'stopPriority');
         const stopPrios = Object.keys(stopGroups).map((prio: string) =>
             parseInt(prio, 10)
@@ -616,17 +691,21 @@ class Boot extends StateSubscriber {
                         instance.next(Events.status, Status.stopping);
                         this.next(Status.stopping, instance);
                         const middlewares = this.getMiddlewaresOfInstance(
-                          instance,
-                          store,
+                            instance,
+                            store
                         );
                         await Throttle.all(
-                            [...middlewares].map((middleware: any) => async () =>
+                            [
+                                ...middlewares,
+                            ].map((middleware: any) => async () =>
                                 middleware.beforeStop(instance)
                             )
                         );
                         await instance.stop();
                         await Throttle.all(
-                            [...middlewares].map((middleware: any) => async () =>
+                            [
+                                ...middlewares,
+                            ].map((middleware: any) => async () =>
                                 middleware.afterStop(instance)
                             )
                         );
@@ -710,7 +789,7 @@ class Boot extends StateSubscriber {
     private async cleanUp(
         store: Store = this.store,
         cleanUpDirectories?: Set<DirectorySettings>,
-        isReboot = false,
+        isReboot = false
     ): Promise<void> {
         const directories = cleanUpDirectories
             ? [...cleanUpDirectories]
@@ -723,7 +802,11 @@ class Boot extends StateSubscriber {
         await Throttle.all(
             directories.map((dir) => async () => {
                 const instances = store.getInstancesOfType(dir.type as any);
-                await Throttle.all([...instances].map((instance) => async () => instance.close()));
+                await Throttle.all(
+                    [...instances].map((instance) => async () =>
+                        instance.close()
+                    )
+                );
 
                 if (isReboot) {
                     store.removeInstances(instances);
@@ -735,8 +818,7 @@ class Boot extends StateSubscriber {
         );
 
         await Throttle.all(
-          [...store.cache.simple._changedFiles]
-            .map((file) => async () => {
+            [...store.cache.simple._changedFiles].map((file) => async () => {
                 const instance = store.getInstanceFromFileMap(file);
                 await this.removeFromFileCache(file, store);
 
@@ -761,9 +843,7 @@ class Boot extends StateSubscriber {
         const directories = startDirectories
             ? [...startDirectories]
             : Object.values(this.config.directories);
-        directories.sort(
-            (a, b) => a.dependencies.size - b.dependencies.size
-        );
+        directories.sort((a, b) => a.dependencies.size - b.dependencies.size);
         await Throttle.all(
             directories.map((dir) => async () =>
                 this.loadInstancesOfDirectory(dir, store, false)
@@ -796,7 +876,7 @@ class Boot extends StateSubscriber {
     private async loadInstancesOfDirectory(
         dir: DirectorySettings,
         store: Store = this.store,
-        cache = true,
+        cache = true
     ): Promise<Set<BaseStructure>> {
         const instances = await this.loadSimple(dir, store, cache);
         await this.provideInstances(instances, dir, store);
@@ -813,9 +893,7 @@ class Boot extends StateSubscriber {
         const dir = this.getDirectoryByType(type);
 
         if (!dir) {
-            throw new Error(
-                'Could not find directory config for this type.'
-            );
+            throw new Error('Could not find directory config for this type.');
         }
 
         const instances = await this.loadSimple(dir, store, true);
@@ -836,9 +914,7 @@ class Boot extends StateSubscriber {
 
         // restart the dependency tree
         const instanceTypes: Set<DirectorySettings> = new Set();
-        const addChangedInstancesToTree = (
-            instance: BaseStructure
-        ) => {
+        const addChangedInstancesToTree = (instance: BaseStructure) => {
             const baseDir = this.getDirectoryByType(instance);
             if (!baseDir) {
                 throw new Error('Could not find directory for this type.');
@@ -878,22 +954,30 @@ class Boot extends StateSubscriber {
 
             addChangedInstancesToTree(instance);
         });
-        await Throttle.all([...store.cache.simple._changedRegistered].map((update) => async () => {
-            if (update.oldInstance) {
-                const fetchedInstance = store.getInstance(update.oldInstance);
+        await Throttle.all(
+            [...store.cache.simple._changedRegistered].map(
+                (update) => async () => {
+                    if (update.oldInstance) {
+                        const fetchedInstance = store.getInstance(
+                            update.oldInstance
+                        );
 
-                if (!fetchedInstance) {
-                    store.logger.debug('Unknown instance. Skipping tree.');
-                    return;
+                        if (!fetchedInstance) {
+                            store.logger.debug(
+                                'Unknown instance. Skipping tree.'
+                            );
+                            return;
+                        }
+
+                        await store.unregister(update.oldInstance);
+                    }
+
+                    if (update.newInstance) {
+                        addChangedInstancesToTree(update.newInstance);
+                    }
                 }
-
-                await store.unregister(update.oldInstance);
-            }
-
-            if (update.newInstance) {
-                addChangedInstancesToTree(update.newInstance);
-            }
-        }));
+            )
+        );
 
         // sort the structures with the most dependencies to the beginning and get it to restart all of them
         await this.stop(store, true, instanceTypes);
@@ -926,17 +1010,16 @@ class Boot extends StateSubscriber {
     /**
      * Get the types which are dependent on the giving type.
      */
-    private getDependents(
-        type: BaseStructure
-    ): Set<BaseStructure> {
+    private getDependents(type: BaseStructure): Set<BaseStructure> {
         const dirs = Object.values(this.config.directories);
         const structures: Set<BaseStructure> = new Set();
         dirs.forEach((dir) => {
             if (
                 dir.type !== type &&
                 (~[...dir.dependencies].indexOf(type) ||
-                    [...dir.dependencies].filter((dep) => type instanceof (dep as any))
-                        .length)
+                    [...dir.dependencies].filter(
+                        (dep) => type instanceof (dep as any)
+                    ).length)
             ) {
                 structures.add(dir.type);
             }
@@ -953,7 +1036,10 @@ class Boot extends StateSubscriber {
         dir: DirectorySettings,
         store: Store = this.store
     ): Set<Middleware> {
-        if (!(instance as any).middlewares || !(instance as any).middlewares.size) {
+        if (
+            !(instance as any).middlewares ||
+            !(instance as any).middlewares.size
+        ) {
             return new Set();
         }
 
@@ -961,23 +1047,24 @@ class Boot extends StateSubscriber {
             [...(instance as any).middlewares]
                 .filter((x) => !!x)
                 .map((mw) => {
-                      if (typeof mw === typeof Middleware) {
-                          const instance = store.getInstance(mw);
+                    if (typeof mw === typeof Middleware) {
+                        const instance = store.getInstance(mw);
 
-                          if (!instance) {
-                              throw new Error('Instance of middleware not found!');
-                          }
+                        if (!instance) {
+                            throw new Error(
+                                'Instance of middleware not found!'
+                            );
+                        }
 
-                          return instance;
-                      }
+                        return instance;
+                    }
 
-                      return mw;
+                    return mw;
                 })
                 .filter((middleware: Middleware) => {
-                    const middlewares = [...dir.middlewares]
-                      .filter(
+                    const middlewares = [...dir.middlewares].filter(
                         (mw) => (middleware as any) instanceof mw
-                      );
+                    );
                     return !!middlewares.length;
                 })
         );
@@ -987,25 +1074,25 @@ class Boot extends StateSubscriber {
      * Use this function to fetch middlewares of an instances without knowing the directory.
      */
     public getMiddlewaresOfInstance(
-      instance: BaseStructure,
-      store: Store = this.store
+        instance: BaseStructure,
+        store: Store = this.store
     ): Set<Middleware> {
-        if (!(instance as any).middlewares || !(instance as any).middlewares.size) {
+        if (
+            !(instance as any).middlewares ||
+            !(instance as any).middlewares.size
+        ) {
             return new Set();
         }
 
-        const dir = Object.values(this.config.directories)
-          .find((dir) => instance instanceof dir.type);
+        const dir = Object.values(this.config.directories).find(
+            (dir) => instance instanceof dir.type
+        );
 
         if (!dir) {
             throw new Error('There is no root type for this instance.');
         }
 
-        return this.getDirectoryMiddlewaresOfInstance(
-          instance,
-          dir,
-          store,
-        );
+        return this.getDirectoryMiddlewaresOfInstance(instance, dir, store);
     }
 
     /*
@@ -1037,7 +1124,7 @@ class Boot extends StateSubscriber {
                 rej('Timeout.');
             }, 5000);
         });
-    };
+    }
 
     /*
      * Basic loading function of files.
@@ -1055,9 +1142,11 @@ class Boot extends StateSubscriber {
                 files.length === 1 ? '' : 's'
             } from '${path}'.`
         );
-        this.debug(`Loaded ${files.length} file${
-            files.length === 1 ? '' : 's'
-        } from '${path}'.`);
+        this.debug(
+            `Loaded ${files.length} file${
+                files.length === 1 ? '' : 's'
+            } from '${path}'.`
+        );
         store.next(`${Events.load}.${dir.statusName}`, true);
         return instances;
     }
@@ -1067,9 +1156,7 @@ class Boot extends StateSubscriber {
         store: Store = this.store
     ): Promise<string[]> {
         let files: string[] = [];
-        const getFilesFromDir = async (
-            pathName: string
-        ): Promise<string[]> => {
+        const getFilesFromDir = async (pathName: string): Promise<string[]> => {
             const dir = resolve(this.baseDir, pathName);
             await new Promise((res, rej) => {
                 if (!existsSync(dir)) {
@@ -1118,18 +1205,16 @@ class Boot extends StateSubscriber {
     }
 
     private async removeAllFromFileCache(
-      store: Store = this.store
+        store: Store = this.store
     ): Promise<void> {
         if (!Object.keys(store.cache.simple._fileMap).length) {
             return;
         }
 
         await Throttle.all(
-          Object.keys(store.cache.simple._fileMap)
-            .map((path) => async () => this.removeFromFileCache(
-              path,
-              store
-            ))
+            Object.keys(store.cache.simple._fileMap).map((path) => async () =>
+                this.removeFromFileCache(path, store)
+            )
         );
     }
 
@@ -1156,33 +1241,39 @@ class Boot extends StateSubscriber {
             }
 
             // import the file
-            return new Set(await Throttle.all(
-                Object.keys(await import(fileName)).map((name) => async () => {
-                    let item = (await import(fileName))[name];
+            return new Set(
+                await Throttle.all(
+                    Object.keys(await import(fileName)).map(
+                        (name) => async () => {
+                            let item = (await import(fileName))[name];
 
-                    // try to create a class instance or run a function
-                    if (typeof item === 'function') {
-                        item = new item();
+                            // try to create a class instance or run a function
+                            if (typeof item === 'function') {
+                                item = new item();
 
-                        if (!(item instanceof BaseStructure)) {
-                            throw new Error('The generated instance is not an instance of BaseStructure.');
+                                if (!(item instanceof BaseStructure)) {
+                                    throw new Error(
+                                        'The generated instance is not an instance of BaseStructure.'
+                                    );
+                                }
+                            }
+
+                            // add the object to the store
+                            const instance = formatItem(item);
+                            instance.next(Events.status, Status.configuring);
+                            this.next(Status.configuring, instance);
+                            await instance.configure();
+                            instance.next(Events.configure, true);
+                            instance.next(Events.status, Status.configured);
+                            this.next(Status.configured, instance);
+                            store.addInstanceToFileMap(fileName, instance);
+                            store.registerInstanceFromPath(fileName);
+
+                            return instance;
                         }
-                    }
-
-                    // add the object to the store
-                    const instance = formatItem(item);
-                    instance.next(Events.status, Status.configuring);
-                    this.next(Status.configuring, instance);
-                    await instance.configure();
-                    instance.next(Events.configure, true);
-                    instance.next(Events.status, Status.configured);
-                    this.next(Status.configured, instance);
-                    store.addInstanceToFileMap(fileName, instance);
-                    store.registerInstanceFromPath(fileName);
-
-                    return instance;
-                })
-            ));
+                    )
+                )
+            );
         } catch (e) {
             store.logger.error(e.message);
             throw e;
@@ -1297,8 +1388,8 @@ class Boot extends StateSubscriber {
                     }
 
                     const middlewares = this.getMiddlewaresOfInstance(
-                      instance,
-                      store,
+                        instance,
+                        store
                     );
                     await Throttle.all(
                         [...middlewares].map((middleware: any) => async () =>
