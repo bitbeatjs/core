@@ -438,7 +438,7 @@ class Boot extends StateSubscriber {
 
             this.debug('Finished starting boot.');
 
-            // start all of the following in the cluster
+            // start all in the cluster after it's provided in general
             if (!isReboot && isMaster && Boot.getEnvVar('CLUSTER', true)) {
                 const workerCount =
                     ((Boot.getEnvVar('CLUSTER_WORKERS') ||
