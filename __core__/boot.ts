@@ -1252,11 +1252,22 @@ class Boot extends StateSubscriber {
                                     value: any,
                                     receiver: any
                                 ) => {
+                                    // skip the event from being emitted to prevent infinite loop
+                                    if (prop === 'event') {
+                                        return Reflect.set(
+                                            target,
+                                            prop,
+                                            value,
+                                            receiver
+                                        );
+                                    }
+                                    // emit the changed value
                                     instance.next('change', {
                                         prop,
                                         value,
                                         oldValue: target[prop],
                                     });
+                                    // run the change
                                     return Reflect.set(
                                         target,
                                         prop,
