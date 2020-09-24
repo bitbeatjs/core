@@ -1262,7 +1262,7 @@ class Boot extends StateSubscriber {
                                         );
                                     }
                                     // emit the changed value
-                                    instance.next('change', {
+                                    instance.next(Events.change, {
                                         prop,
                                         value,
                                         oldValue: target[prop],

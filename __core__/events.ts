@@ -6,6 +6,7 @@ enum Event {
     provide = 'provide',
     configure = 'configure',
     status = 'status',
+    change = 'change',
 }
 
 export default Event;
