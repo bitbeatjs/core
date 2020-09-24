@@ -1244,14 +1244,44 @@ class Boot extends StateSubscriber {
                                 }
                             }
 
-                            // add the object to the store
-                            const instance = formatItem(item);
+                            // add a property watcher
+                            const instance = new Proxy(formatItem(item), {
+                                set: (
+                                    target: any,
+                                    prop: string,
+                                    value: any,
+                                    receiver: any
+                                ) => {
+                                    if (prop.startsWith('_')) {
+                                        return Reflect.set(
+                                            target,
+                                            prop,
+                                            value,
+                                            receiver
+                                        );
+                                    }
+
+                                    instance.next('change', {
+                                        prop,
+                                        value,
+                                        oldValue: target[prop],
+                                    });
+                                    return Reflect.set(
+                                        target,
+                                        prop,
+                                        value,
+                                        receiver
+                                    );
+                                },
+                            });
                             instance.next(Events.status, Status.configuring);
                             this.next(Status.configuring, instance);
                             await instance.configure();
                             instance.next(Events.configure, true);
                             instance.next(Events.status, Status.configured);
                             this.next(Status.configured, instance);
+
+                            // add the object to the store
                             store.addInstanceToFileMap(fileName, instance);
                             store.registerInstanceFromPath(fileName);
 
