@@ -1252,15 +1252,6 @@ class Boot extends StateSubscriber {
                                     value: any,
                                     receiver: any
                                 ) => {
-                                    if (prop.startsWith('_')) {
-                                        return Reflect.set(
-                                            target,
-                                            prop,
-                                            value,
-                                            receiver
-                                        );
-                                    }
-
                                     instance.next('change', {
                                         prop,
                                         value,
