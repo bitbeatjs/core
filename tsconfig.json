@@ -17,8 +17,7 @@
   },
   "files": [
     "./index.ts",
-    "./bitbeat.config.ts",
-    "./boot.ts"
+    "./bitbeat.config.ts"
   ],
   "exclude": [
     "./node_modules"
