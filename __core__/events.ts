@@ -1,4 +1,5 @@
 enum Event {
+    register = 'register',
     init = 'initialize',
     start = 'start',
     run = 'run',
@@ -7,6 +8,10 @@ enum Event {
     configure = 'configure',
     status = 'status',
     change = 'change',
+    fileUnlink = 'file.unlink',
+    fileChange = 'file.change',
+    fileAdd = 'file.add',
+    startWatchers = 'start.watchers',
 }
 
 export default Event;

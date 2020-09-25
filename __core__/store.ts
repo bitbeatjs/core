@@ -15,6 +15,7 @@ import { Cache, Config, Constructor } from './interfaces';
 import Task from './task';
 import Boot from './boot';
 import * as Types from './index';
+import Events from './events';
 
 export default class Store extends StateSubscriber {
     private readonly loggingStream?: WriteStream;
@@ -122,9 +123,9 @@ export default class Store extends StateSubscriber {
      * Init the store.
      */
     public async init(): Promise<void> {
-        this.next('status', Status.initializing);
+        this.next(Events.status, Status.initializing);
         this.logger.debug('Done initializing store.');
-        this.next('status', Status.initialized);
+        this.next(Events.status, Status.initialized);
     }
 
     /**
@@ -253,7 +254,7 @@ export default class Store extends StateSubscriber {
         reboot = true
     ): Promise<InstanceType<Constr>> {
         const createdInstance = await this.createAndAddInstance(instance);
-        this.next('register', {
+        this.next(Events.register, {
             instances: new Set([createdInstance]),
             reboot,
         });
@@ -309,7 +310,7 @@ export default class Store extends StateSubscriber {
             this.debug(`Registered instance '${createdInstance.name}'.`);
         }
 
-        this.next('register', {
+        this.next(Events.register, {
             instances: outputInstances,
             reboot,
         });
@@ -337,7 +338,7 @@ export default class Store extends StateSubscriber {
             oldInstance: instance,
         });
         this.debug(`Unregistered instance '${instance.name}'.`);
-        this.next('register', {
+        this.next(Events.register, {
             instances: new Set([instance]),
             reboot,
         });
@@ -368,7 +369,7 @@ export default class Store extends StateSubscriber {
             this.debug(`Unregistered instance '${entry.name}'.`);
         }
 
-        this.next('register', {
+        this.next(Events.register, {
             instances,
             reboot,
         });
@@ -415,7 +416,7 @@ export default class Store extends StateSubscriber {
             outputInstances.add(createdInstance);
         }
 
-        this.next('register', {
+        this.next(Events.register, {
             instances: outputInstances,
             reboot,
         });

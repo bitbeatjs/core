@@ -14,7 +14,7 @@ export default class Cli {
         restart: () => Promise<void>;
         shutdown: () => Promise<void>;
         timeout: number;
-        keepAlive: boolean;
+        keepAlive?: boolean;
     };
     public busy = false;
     public stop = false;
@@ -25,13 +25,13 @@ export default class Cli {
         restart: () => Promise<void>;
         shutdown: () => Promise<void>;
         timeout: number;
-        keepAlive: boolean;
+        keepAlive?: boolean;
     }) {
-        if (!Object.prototype.hasOwnProperty.call(options, 'keepAlive')) {
-            options.keepAlive = true;
-        }
-
         this.options = options;
+
+        if (!Object.prototype.hasOwnProperty.call(this.options, 'keepAlive')) {
+            this.options.keepAlive = true;
+        }
 
         this.signals.forEach((sig): void => {
             const handleListener = (signal: NodeJS.Signals): void => {

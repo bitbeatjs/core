@@ -431,7 +431,7 @@ class Boot extends StateSubscriber {
             // start the watcher
             if (process.env.NODE_ENV !== 'production' && !isReboot) {
                 this.watchFiles(store);
-                store.next('start.watchers', true);
+                store.next(Events.startWatchers, true);
                 store.debug('Started file watcher.');
                 this.debug('Started file watcher.');
             }
@@ -724,7 +724,7 @@ class Boot extends StateSubscriber {
             // stop the watcher
             if (process.env.NODE_ENV !== 'production' && !isReboot) {
                 store.unwatchFiles();
-                store.next('start.watchers', false);
+                store.next(Events.startWatchers, false);
             }
 
             // get all directories
@@ -1342,19 +1342,19 @@ class Boot extends StateSubscriber {
                 ?.on('add', async (path) => {
                     this.debug(`File '${path}' has been added.`);
                     store.logger.debug(`File ${path} has been added...`);
-                    store.next('file.add', path);
+                    store.next(Events.fileAdd, path);
                     return handler(path);
                 })
                 ?.on('change', async (path) => {
                     this.debug(`File '${path}' has changed.`);
                     store.logger.debug(`File ${path} has changed...`);
-                    store.next('file.change', path);
+                    store.next(Events.fileChange, path);
                     return handler(path);
                 })
                 ?.on('unlink', async (path) => {
                     this.debug(`File '${path}' has been deleted.`);
                     store.logger.debug(`File ${path} has been deleted...`);
-                    store.next('file.unlink', path);
+                    store.next(Events.fileUnlink, path);
                     return handler(path);
                 });
         };
