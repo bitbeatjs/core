@@ -283,7 +283,7 @@ export default class Store extends StateSubscriber {
             throw new Error('Already registered.');
         }
 
-        instance = Boot.applyProxy(instance) as any;
+        instance = Boot.applyProxyToInstance(instance) as any;
         await instance.configure();
         this.registeredInstances.add(instance);
         this.linkRegistered(instance);

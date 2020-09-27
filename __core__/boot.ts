@@ -1204,7 +1204,7 @@ class Boot extends StateSubscriber {
         );
     }
 
-    public static applyProxy(instance: BaseStructure): BaseStructure {
+    public static applyProxyToInstance(instance: BaseStructure): BaseStructure {
         return new Proxy(instance, {
             set: (target: any, prop: string, value: any, receiver: any) => {
                 // skip the event from being emitted to prevent infinite loop
@@ -1264,7 +1264,7 @@ class Boot extends StateSubscriber {
                             }
 
                             // add a property watcher
-                            const instance = Boot.applyProxy(formatItem(item));
+                            const instance = Boot.applyProxyToInstance(formatItem(item));
                             instance.next(Events.status, Status.configuring);
                             this.next(Status.configuring, instance);
                             await instance.configure();
