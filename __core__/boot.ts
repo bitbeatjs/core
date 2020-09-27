@@ -1264,13 +1264,15 @@ class Boot extends StateSubscriber {
                             }
 
                             // add a property watcher
-                            const instance = Boot.applyProxyToInstance(formatItem(item));
+                            const instance = Boot.applyProxyToInstance(
+                                formatItem(item)
+                            );
                             instance.next(Events.status, Status.configuring);
-                            this.next(Status.configuring, instance);
+                            store.next(Status.configuring, instance);
                             await instance.configure();
                             instance.next(Events.configure, true);
                             instance.next(Events.status, Status.configured);
-                            this.next(Status.configured, instance);
+                            store.next(Status.configured, instance);
 
                             // add the object to the store
                             store.addInstanceToFileMap(fileName, instance);
