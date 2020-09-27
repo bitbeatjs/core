@@ -1204,6 +1204,25 @@ class Boot extends StateSubscriber {
         );
     }
 
+    public static applyProxy(instance: BaseStructure): BaseStructure {
+        return new Proxy(instance, {
+            set: (target: any, prop: string, value: any, receiver: any) => {
+                // skip the event from being emitted to prevent infinite loop
+                if (prop === 'event') {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+                // emit the changed value
+                instance.next(Events.change, {
+                    prop,
+                    value,
+                    oldValue: target[prop],
+                });
+                // run the change
+                return Reflect.set(target, prop, value, receiver);
+            },
+        });
+    }
+
     private async loadFile(
         fileName: string,
         store: Store = this.store,
@@ -1245,37 +1264,7 @@ class Boot extends StateSubscriber {
                             }
 
                             // add a property watcher
-                            const instance = new Proxy(formatItem(item), {
-                                set: (
-                                    target: any,
-                                    prop: string,
-                                    value: any,
-                                    receiver: any
-                                ) => {
-                                    // skip the event from being emitted to prevent infinite loop
-                                    if (prop === 'event') {
-                                        return Reflect.set(
-                                            target,
-                                            prop,
-                                            value,
-                                            receiver
-                                        );
-                                    }
-                                    // emit the changed value
-                                    instance.next(Events.change, {
-                                        prop,
-                                        value,
-                                        oldValue: target[prop],
-                                    });
-                                    // run the change
-                                    return Reflect.set(
-                                        target,
-                                        prop,
-                                        value,
-                                        receiver
-                                    );
-                                },
-                            });
+                            const instance = Boot.applyProxy(formatItem(item));
                             instance.next(Events.status, Status.configuring);
                             this.next(Status.configuring, instance);
                             await instance.configure();
