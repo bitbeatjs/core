@@ -285,7 +285,12 @@ export default class Store extends StateSubscriber {
             throw new Error('Already registered.');
         }
 
+        instance.next(Events.status, Status.configuring);
+        this.next(Status.configuring, instance);
         await instance.configure();
+        instance.next(Events.configure, true);
+        instance.next(Events.status, Status.configured);
+        this.next(Status.configured, instance);
         this.registeredInstances.add(instance);
         this.linkRegistered(instance);
         this.cache.simple._changedRegistered.add({
