@@ -797,6 +797,9 @@ export default class Store extends StateSubscriber {
         this.debugLog(`Cleared all tasks.`, this.debug);
     }
 
+    /**
+     * Generate a proxy for an instance to use this instead of the direct instance.
+     */
     public applyProxyToInstance(instance: BaseStructure): BaseStructure {
         const proxyInstance = new Proxy(instance, {
             set: (target: any, prop: string, value: any, receiver: any) => {
@@ -821,6 +824,9 @@ export default class Store extends StateSubscriber {
         return proxyInstance;
     }
 
+    /**
+     * Log a message in the debug log and in the debugger.
+     */
     public debugLog = (
         message: string,
         debugFunction: (message: string) => void
