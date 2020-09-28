@@ -1177,6 +1177,9 @@ class Boot extends StateSubscriber {
         return getFilesFromDir(path);
     }
 
+    /**
+     * Remove a file from the node cache.
+     */
     private async removeFromFileCache(
         fileName: string,
         store: Store = this.store
@@ -1185,6 +1188,9 @@ class Boot extends StateSubscriber {
         store.debugLog(`Removed '${fileName}' from file cache.`, this.debug);
     }
 
+    /**
+     * Remove all files from the filemap from the node cache.
+     */
     private async removeAllFromFileCache(
         store: Store = this.store
     ): Promise<void> {
@@ -1199,6 +1205,9 @@ class Boot extends StateSubscriber {
         );
     }
 
+    /**
+     * Load a file in the store and create and instance.
+     */
     private async loadFile(
         fileName: string,
         store: Store = this.store,
@@ -1265,6 +1274,9 @@ class Boot extends StateSubscriber {
         }
     }
 
+    /**
+     * Load a list of files.
+     */
     private async loadFiles(
         files: string[],
         store: Store = this.store,
@@ -1283,6 +1295,9 @@ class Boot extends StateSubscriber {
         return new Set(instances);
     }
 
+    /**
+     * Watch files for changes.
+     */
     private watchFiles(store: Store = this.store): void {
         store.startFileWatcher();
         let delayTimer: NodeJS.Timer | undefined;
