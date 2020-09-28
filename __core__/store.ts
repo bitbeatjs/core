@@ -124,7 +124,7 @@ export default class Store extends StateSubscriber {
      */
     public async init(): Promise<void> {
         this.next(Events.status, Status.initializing);
-        this.logger.debug('Done initializing store.');
+        this.debugLog('Done initializing store.', this.debug);
         this.next(Events.status, Status.initialized);
     }
 
@@ -133,7 +133,10 @@ export default class Store extends StateSubscriber {
      */
     public async close(): Promise<void> {
         await this.stopFileWatcher();
-        await this.logger.removeAllListeners();
+        this.registeredInstances.clear();
+        this.instances.clear();
+        this.tasks.clear();
+        this.logger.removeAllListeners();
         this.loggingStream?.close();
     }
 
@@ -146,7 +149,7 @@ export default class Store extends StateSubscriber {
                 join(`${resolve(this.baseDir, directory.path)}`, '/**', '/*.js')
             )
         );
-        this.logger.debug('Stopped watching files.');
+        this.debugLog('Stopped watching files.', this.debug);
     }
 
     /**
@@ -158,7 +161,7 @@ export default class Store extends StateSubscriber {
                 join(`${resolve(this.baseDir, directory.path)}`, '/**', '/*.js')
             )
         );
-        this.logger.debug('Started watching files.');
+        this.debugLog('Started watching files.', this.debug);
     }
 
     /**
@@ -176,7 +179,7 @@ export default class Store extends StateSubscriber {
                 followSymlinks: true,
             }
         );
-        this.logger.debug('Started watching files.');
+        this.debugLog('Started watching files.', this.debug);
     }
 
     /**
@@ -185,7 +188,7 @@ export default class Store extends StateSubscriber {
     public async stopFileWatcher(): Promise<void> {
         this.watcher?.removeAllListeners();
         await (this.watcher as any)?.close();
-        this.logger.debug('Stopped watching files.');
+        this.debugLog('Stopped watching files.', this.debug);
     }
 
     /**
@@ -279,27 +282,30 @@ export default class Store extends StateSubscriber {
             (instance as any).name = instance.constructor.name;
         }
 
-        instance = Boot.applyProxyToInstance(instance) as any;
-
-        if (this.registeredInstances.has(instance)) {
+        const proxyInstance = this.applyProxyToInstance(
+            instance
+        ) as InstanceType<Constr>;
+        if (this.registeredInstances.has(proxyInstance)) {
             throw new Error('Already registered.');
         }
 
-        instance.next(Events.status, Status.configuring);
-        this.next(Status.configuring, instance);
-        await instance.configure();
-        instance.next(Events.configure, true);
-        instance.next(Events.status, Status.configured);
-        this.next(Status.configured, instance);
-        this.registeredInstances.add(instance);
-        this.linkRegistered(instance);
+        proxyInstance.next(Events.status, Status.configuring);
+        this.next(Status.configuring, proxyInstance);
+        await proxyInstance.configure();
+        proxyInstance.next(Events.configure, true);
+        proxyInstance.next(Events.status, Status.configured);
+        this.next(Status.configured, proxyInstance);
+        this.registeredInstances.add(proxyInstance);
+        this.linkRegistered(proxyInstance);
         this.cache.simple._changedRegistered.add({
-            newInstance: instance,
+            newInstance: proxyInstance,
             oldInstance: undefined,
         });
-        this.logger.debug(`Registered instance '${instance.name}'.`);
-        this.debug(`Registered instance '${instance.name}'.`);
-        return instance;
+        this.debugLog(
+            `Registered instance '${proxyInstance.name}'.`,
+            this.debug
+        );
+        return proxyInstance;
     }
 
     /**
@@ -314,14 +320,17 @@ export default class Store extends StateSubscriber {
         for (const entry of instances) {
             const createdInstance = await this.createAndAddInstance(entry);
             outputInstances.add(createdInstance);
-            this.debug(`Registered instance '${createdInstance.name}'.`);
+            this.debugLog(
+                `Registered instance '${createdInstance.name}'.`,
+                this.debug
+            );
         }
 
         this.next(Events.register, {
             instances: outputInstances,
             reboot,
         });
-        this.debug(`Registered bulk of instances.`);
+        this.debugLog(`Registered bulk of instances.`, this.debug);
         return outputInstances;
     }
 
@@ -344,7 +353,7 @@ export default class Store extends StateSubscriber {
             newInstance: undefined,
             oldInstance: instance,
         });
-        this.debug(`Unregistered instance '${instance.name}'.`);
+        this.debugLog(`Unregistered instance '${instance.name}'.`, this.debug);
         this.next(Events.register, {
             instances: new Set([instance]),
             reboot,
@@ -373,14 +382,14 @@ export default class Store extends StateSubscriber {
                 newInstance: undefined,
                 oldInstance: entry,
             });
-            this.debug(`Unregistered instance '${entry.name}'.`);
+            this.debugLog(`Unregistered instance '${entry.name}'.`, this.debug);
         }
 
         this.next(Events.register, {
             instances,
             reboot,
         });
-        this.debug(`Unregistered bulk of instances.`);
+        this.debugLog(`Unregistered bulk of instances.`, this.debug);
         return instances;
     }
 
@@ -399,7 +408,7 @@ export default class Store extends StateSubscriber {
         this.instances.delete(oldInstance);
         this.registeredInstances.delete(oldInstance);
         await this.register(newInstance);
-        this.debug(`Updated instance '${oldInstance.name}'.`);
+        this.debugLog(`Updated instance '${oldInstance.name}'.`, this.debug);
         return newInstance;
     }
 
@@ -438,11 +447,9 @@ export default class Store extends StateSubscriber {
     ): void {
         if (instance) {
             if (!this.checkRegisteredInstance(instance)) {
-                this.logger.debug(
-                    `Instance '${instance.name}' was not found in registered.`
-                );
-                this.debug(
-                    `Instance '${instance.name}' was not found in registered.`
+                this.debugLog(
+                    `Instance '${instance.name}' was not found in registered.`,
+                    this.debug
                 );
                 return;
             }
@@ -454,16 +461,17 @@ export default class Store extends StateSubscriber {
                 }
             }
 
-            this.logger.debug(`Linked instance ${instance.name}.`);
-            this.debug(`Linked instance ${instance.name}.`);
+            this.debugLog(`Linked instance '${instance.name}'.`, this.debug);
             return;
         }
 
         for (const inst of this.registeredInstances.keys()) {
             this.instances.add(inst);
         }
-        this.logger.debug(`Linked ${this.registeredInstances.size} instances.`);
-        this.debug(`Linked ${this.registeredInstances.size} instances.`);
+        this.debugLog(
+            `Linked ${this.registeredInstances.size} instances.`,
+            this.debug
+        );
     }
 
     /**
@@ -508,12 +516,12 @@ export default class Store extends StateSubscriber {
         let [instance] = items;
 
         if (version === -1) {
-            this.debug(`Found instance '${instance.name}'.`);
+            this.debugLog(`Found instance '${instance.name}'.`, this.debug);
             return instance as InstanceType<Constr>;
         }
 
         instance = items.find((item) => item.version === version) as any;
-        this.debug(`Found instance '${instance.name}'.`);
+        this.debugLog(`Found instance '${instance.name}'.`, this.debug);
         return instance;
     }
 
@@ -531,7 +539,7 @@ export default class Store extends StateSubscriber {
         ) as BaseStructure[];
 
         if (!items.length) {
-            this.debug(`Could not find instance.`);
+            this.debugLog(`Could not find instance.`, this.debug);
             return;
         }
 
@@ -540,23 +548,23 @@ export default class Store extends StateSubscriber {
         [instance] = items;
 
         if (!instance) {
-            this.debug(`Could not find instance.`);
+            this.debugLog(`Could not find instance.`, this.debug);
             return;
         }
 
         if (version === -1) {
-            this.debug(`Found instance '${instance.name}'.`);
+            this.debugLog(`Found instance '${instance.name}'.`, this.debug);
             return instance;
         }
 
         instance = items.find((item) => item.version === version);
 
         if (!instance) {
-            this.debug(`Could not find instance.`);
+            this.debugLog(`Could not find instance.`, this.debug);
             return;
         }
 
-        this.debug(`Found instance '${instance.name}'.`);
+        this.debugLog(`Found instance '${instance.name}'.`, this.debug);
         return instance as BaseStructure;
     }
 
@@ -625,8 +633,7 @@ export default class Store extends StateSubscriber {
         }
 
         this.addInstance(this.cache.simple._fileMap[path]);
-        this.logger.debug(`Registered instance from path '${path}'.`);
-        this.debug(`Registered instance from path '${path}'.`);
+        this.debugLog(`Registered instance from path '${path}'.`, this.debug);
         return this.cache.simple._fileMap[path];
     }
 
@@ -701,12 +708,18 @@ export default class Store extends StateSubscriber {
         const task = this.getScheduledTask(instance);
 
         if (!task) {
-            this.debug(`Couldn't find a task for '${instance.name}'.`);
+            this.debugLog(
+                `Couldn't find a task for '${instance.name}'.`,
+                this.debug
+            );
             return;
         }
 
         task.start();
-        this.debug(`Started task '${(task as any)._instance.name}'.`);
+        this.debugLog(
+            `Started task '${(task as any)._instance.name}'.`,
+            this.debug
+        );
         return task;
     }
 
@@ -717,7 +730,7 @@ export default class Store extends StateSubscriber {
         [...this.tasks].forEach((task) => {
             this.startScheduledTask((task as any)._instance as Task);
         });
-        this.debug(`Started all tasks.`);
+        this.debugLog(`Started all tasks.`, this.debug);
     }
 
     /**
@@ -727,12 +740,18 @@ export default class Store extends StateSubscriber {
         const task = this.getScheduledTask(instance);
 
         if (!task) {
-            this.debug(`Couldn't find a task for '${instance.name}'.`);
+            this.debugLog(
+                `Couldn't find a task for '${instance.name}'.`,
+                this.debug
+            );
             return;
         }
 
         task.stop();
-        this.debug(`Stopped task '${(task as any)._instance.name}'.`);
+        this.debugLog(
+            `Stopped task '${(task as any)._instance.name}'.`,
+            this.debug
+        );
         return task;
     }
 
@@ -743,7 +762,7 @@ export default class Store extends StateSubscriber {
         [...this.tasks].forEach((task) =>
             this.stopScheduledTask((task as any)._instance as Task)
         );
-        this.debug(`Stopped all tasks.`);
+        this.debugLog(`Stopped all tasks.`, this.debug);
     }
 
     /**
@@ -753,13 +772,19 @@ export default class Store extends StateSubscriber {
         const task = this.stopScheduledTask(instance);
 
         if (!task) {
-            this.debug(`Couldn't find a task for '${instance.name}'.`);
+            this.debugLog(
+                `Couldn't find a task for '${instance.name}'.`,
+                this.debug
+            );
             return;
         }
 
         task.destroy();
         this.tasks.delete(task);
-        this.debug(`Deleted task '${(task as any)._instance.name}'.`);
+        this.debugLog(
+            `Deleted task '${(task as any)._instance.name}'.`,
+            this.debug
+        );
     }
 
     /**
@@ -769,6 +794,38 @@ export default class Store extends StateSubscriber {
         [...this.tasks].forEach((task) =>
             this.deleteScheduledTask((task as any)._instance as Task)
         );
-        this.debug(`Cleared all tasks.`);
+        this.debugLog(`Cleared all tasks.`, this.debug);
     }
+
+    public applyProxyToInstance(instance: BaseStructure): BaseStructure {
+        const proxyInstance = new Proxy(instance, {
+            set: (target: any, prop: string, value: any, receiver: any) => {
+                // skip the event from being emitted to prevent infinite loop
+                if (prop === 'event') {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+                // emit the changed value
+                instance.next(Events.change, {
+                    prop,
+                    value,
+                    oldValue: target[prop],
+                });
+                // run the change
+                return Reflect.set(target, prop, value, receiver);
+            },
+        });
+        this.debugLog(
+            `Created proxy instance for '${instance.name}'.`,
+            this.debug
+        );
+        return proxyInstance;
+    }
+
+    public debugLog = (
+        message: string,
+        debugFunction: (message: string) => void
+    ): void => {
+        debugFunction(message);
+        this.logger.debug(message);
+    };
 }

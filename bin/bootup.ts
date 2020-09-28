@@ -38,7 +38,7 @@ export {
     registerBulk,
     unregister,
     unregisterBulk,
-    registerUpdate
+    registerUpdate,
 };
 
 export default async (): Promise<void> => {
@@ -55,15 +55,20 @@ export default async (): Promise<void> => {
     // the basic init boot function to export always the update
     const initBoot = async (configPath: string): Promise<void> => {
         boot = new Boot();
-        await boot.init(undefined, configPath ? {
-            configPath,
-        } : undefined);
+        await boot.init(
+            undefined,
+            configPath
+                ? {
+                      configPath,
+                  }
+                : undefined
+        );
         store = boot.store as Store;
         logger = store.logger as Logger;
         cache = store.cache;
 
         // rebind all functions to the store
-        getInstance =  store.getInstance.bind(store);
+        getInstance = store.getInstance.bind(store);
         getAllInstances = store.getAllInstances.bind(store);
         getInstancesOfType = store.getInstancesOfType.bind(store);
         register = store.register.bind(store);
@@ -89,7 +94,9 @@ export default async (): Promise<void> => {
             const bootFunction = bootFile['default'];
 
             if (!bootFunction) {
-                throw new Error('Could not start default boot function. Did you use module.exports correctly?');
+                throw new Error(
+                    'Could not start default boot function. Did you use module.exports correctly?'
+                );
             }
 
             await bootFunction();
@@ -104,19 +111,21 @@ export default async (): Promise<void> => {
 
     // run the cli tool
     new Command(packageJson.name)
-      .command('start')
-      .option('-c, --config <path-to-config>', 'set a config file for bitbeat to use')
-      .usage(`(${commands.join('|')}) [options]`)
-      .action(async options => {
-          await initBoot(options.config);
-          await new Cli({
-              start: async () => await boot.start(store),
-              restart: async () => await boot.restart(store),
-              shutdown: async () =>
-                await boot.shutdown(store),
-              timeout: 10000,
-          });
-      })
-      .allowUnknownOption()
-      .parse(process.argv);
+        .command('start')
+        .option(
+            '-c, --config <path-to-config>',
+            'set a config file for bitbeat to use'
+        )
+        .usage(`(${commands.join('|')}) [options]`)
+        .action(async (options) => {
+            await initBoot(options.config);
+            await new Cli({
+                start: async () => await boot.start(store),
+                restart: async () => await boot.restart(store),
+                shutdown: async () => await boot.shutdown(store),
+                timeout: 10000,
+            });
+        })
+        .allowUnknownOption()
+        .parse(process.argv);
 };

@@ -124,9 +124,9 @@ class Boot extends StateSubscriber {
                 logLevel: this.logLevel,
             }) as Store);
 
-        this.store.debug('Created store.');
+        this.store.debugLog('Created store.', this.store.debug);
         await this.store.init();
-        this.store.debug('Initialized store.');
+        this.store.debugLog('Initialized store.', this.store.debug);
 
         // init the start and general states
         const directoryNames = Object.keys(this.config.directories);
@@ -146,7 +146,7 @@ class Boot extends StateSubscriber {
             this.store.next(`${Events.start}.${name}`, false);
         });
 
-        this.debug('Initialized boot.');
+        this.store.debugLog('Initialized boot.', this.debug);
         this.next(Events.status, Status.initialized);
     }
 
@@ -239,7 +239,7 @@ class Boot extends StateSubscriber {
         try {
             this.next(Events.status, Status.shutdown);
             store.logger.info('Shutting down...');
-            this.debug('Stopping boot.');
+            store.debugLog('Stopping boot.', this.debug);
             await this.stop(store, false);
             await Throttle.all(
                 [...store.getAllInstances()].map((instance) => async () =>
@@ -247,22 +247,25 @@ class Boot extends StateSubscriber {
                 )
             );
             await this.removeAllFromFileCache(store);
-            this.debug('Stopped boot.');
+            store.debugLog('Stopped boot.', this.debug);
             store.clearInstances();
 
             store.logger.info('Exiting...');
             await store.close();
-            store.debug('Closed store.');
+            store.debugLog('Closed store.', this.debug);
             this.next(Events.status, Status.exit);
 
             if (isMaster && Boot.getEnvVar('CLUSTER', true)) {
                 for (const worker of this.workerPool) {
                     worker.destroy();
-                    this.debug(`Destroyed worker '${worker.id}'.`);
+                    store.debugLog(
+                        `Destroyed worker '${worker.id}'.`,
+                        this.debug
+                    );
                 }
             }
 
-            this.debug('Exit boot.');
+            store.debugLog('Exit boot.', this.debug);
         } catch (e) {
             store.logger.error(e.message);
             throw e;
@@ -363,7 +366,7 @@ class Boot extends StateSubscriber {
         startDirectories?: Set<DirectorySettings>
     ): Promise<void> {
         try {
-            this.debug('Starting boot.');
+            store.debugLog('Starting boot.', this.debug);
             this.next(Events.status, Status.starting);
             store.logger.info('Starting service...');
 
@@ -375,7 +378,7 @@ class Boot extends StateSubscriber {
 
             // load all directories
             await this.startup(isReboot, store, startDirectories);
-            store.debug('Loaded store and instances.');
+            store.debugLog('Loaded store and instances.', store.debug);
 
             // update the boot time
             store.bootTime = Date.now();
@@ -405,7 +408,7 @@ class Boot extends StateSubscriber {
                     long: true,
                 })} to boot.`
             );
-            this.debug('Logged infos.');
+            store.debugLog('Logged status infos.', this.debug);
 
             if (!isReboot) {
                 store.cache.simple._changedFiles.clear();
@@ -432,11 +435,10 @@ class Boot extends StateSubscriber {
             if (process.env.NODE_ENV !== 'production' && !isReboot) {
                 this.watchFiles(store);
                 store.next(Events.startWatchers, true);
-                store.debug('Started file watcher.');
-                this.debug('Started file watcher.');
+                store.debugLog('Started file watcher.', this.debug);
             }
 
-            this.debug('Finished starting boot.');
+            store.debugLog('Finished starting boot.', this.debug);
 
             // start all in the cluster after it's provided in general
             if (!isReboot && isMaster && Boot.getEnvVar('CLUSTER', true)) {
@@ -495,8 +497,7 @@ class Boot extends StateSubscriber {
                 this.next(Status.provided, instance);
             })
         );
-        store.logger.debug(`Provided instances for '${dir.path}'.`);
-        this.debug(`Provided instances for '${dir.path}'.`);
+        store.debugLog(`Provided instances for '${dir.path}'.`, this.debug);
         store.next(`${Events.provide}.${dir.statusName}`, true);
     }
 
@@ -566,8 +567,7 @@ class Boot extends StateSubscriber {
                 maxInProgress: 1,
             }
         );
-        store.logger.debug(`Initialized instances for '${dir.path}'.`);
-        this.debug(`Initialized instances for '${dir.path}'.`);
+        store.debugLog(`Initialized instances for '${dir.path}'.`, this.debug);
         store.next(`${Events.init}.${dir.statusName}`, true);
     }
 
@@ -635,8 +635,7 @@ class Boot extends StateSubscriber {
                     maxInProgress: 1,
                 }
             );
-            store.logger.debug(`Started instances for '${dir.path}'.`);
-            this.debug(`Started instances for '${dir.path}'.`);
+            store.debugLog(`Started instances for '${dir.path}'.`, this.debug);
             store.next(`${Events.start}.${dir.statusName}`, true);
         } catch (e) {
             await this.stopInstances(instances, dir, store);
@@ -705,8 +704,7 @@ class Boot extends StateSubscriber {
                 maxInProgress: 1,
             }
         );
-        store.logger.debug(`Stopped instances for '${dir.path}'.`);
-        this.debug(`Stopped instances for '${dir.path}'.`);
+        store.debugLog(`Stopped instances for '${dir.path}'.`, this.debug);
         store.next(`${Events.start}.${dir.statusName}`, false);
     }
 
@@ -892,8 +890,7 @@ class Boot extends StateSubscriber {
      */
     public async restart(store: Store = this.store): Promise<void> {
         this.next(Events.status, Status.restarting);
-        this.debug(`Restarting boot...`);
-        store.logger.info('Restarting...');
+        store.debugLog('Restarting...', this.debug);
 
         // set the update time
         store.updateTime = Date.now();
@@ -925,8 +922,9 @@ class Boot extends StateSubscriber {
                 }
 
                 instanceTypes.add(dir);
-                this.debug(
-                    `Found '${dir.path}' as dependency. Add for restarting.`
+                store.debugLog(
+                    `Found '${dir.path}' as dependency. Add for restarting.`,
+                    this.debug
                 );
             }
         };
@@ -934,7 +932,7 @@ class Boot extends StateSubscriber {
             const instance = store.getInstanceFromFileMap(filePath);
 
             if (!instance) {
-                store.logger.debug('Unknown instance. Skipping tree.');
+                store.debugLog('Unknown instance. Skipping tree.', this.debug);
                 return;
             }
 
@@ -949,8 +947,9 @@ class Boot extends StateSubscriber {
                         );
 
                         if (!fetchedInstance) {
-                            store.logger.debug(
-                                'Unknown instance. Skipping tree.'
+                            store.debugLog(
+                                'Unknown instance. Skipping tree.',
+                                this.debug
                             );
                             return;
                         }
@@ -968,7 +967,7 @@ class Boot extends StateSubscriber {
         // sort the structures with the most dependencies to the beginning and get it to restart all of them
         await this.stop(store, true, instanceTypes);
         await this.start(store, true, instanceTypes);
-        this.debug(`Restarted boot.`);
+        store.debugLog(`Restarted boot.`, this.debug);
         this.next(Events.status, Status.restarted);
     }
 
@@ -1096,17 +1095,17 @@ class Boot extends StateSubscriber {
             const bootCycle = (status: Status) => {
                 if (status === Status.started) {
                     this.removeListener(Events.status, bootCycle);
-                    store.removeListener('register', registerCycle);
+                    store.removeListener(Events.register, registerCycle);
                     res();
                 }
             };
             const registerCycle = () => {
                 this.subscribe(Events.status, bootCycle);
             };
-            store.subscribe('register', registerCycle);
+            store.subscribe(Events.register, registerCycle);
             setTimeout(() => {
                 this.removeListener(Events.status, bootCycle);
-                store.removeListener('register', registerCycle);
+                store.removeListener(Events.register, registerCycle);
                 rej('Timeout.');
             }, 5000);
         });
@@ -1123,15 +1122,11 @@ class Boot extends StateSubscriber {
         const path = this.resolvePath(dir.path);
         const files = await this.getFiles(path, store);
         const instances = await this.loadFiles(files, store, cache);
-        store.logger.debug(
+        store.debugLog(
             `Loaded ${files.length} file${
                 files.length === 1 ? '' : 's'
-            } from '${path}'.`
-        );
-        this.debug(
-            `Loaded ${files.length} file${
-                files.length === 1 ? '' : 's'
-            } from '${path}'.`
+            } from '${path}'.`,
+            this.debug
         );
         store.next(`${Events.load}.${dir.statusName}`, true);
         return instances;
@@ -1146,8 +1141,9 @@ class Boot extends StateSubscriber {
             const dir = resolve(this.baseDir, pathName);
             await new Promise((res, rej) => {
                 if (!existsSync(dir)) {
-                    store.logger.debug(
-                        `No directory named '${dir}' found. Skipping.`
+                    store.debugLog(
+                        `No directory named '${dir}' found. Skipping.`,
+                        this.debug
                     );
                     res();
                 }
@@ -1186,8 +1182,7 @@ class Boot extends StateSubscriber {
         store: Store = this.store
     ): Promise<void> {
         delete require.cache[require.resolve(fileName)];
-        this.debug(`Removed '${fileName}' from file cache.`);
-        store.logger.debug(`Removed '${fileName}' from file cache.`);
+        store.debugLog(`Removed '${fileName}' from file cache.`, this.debug);
     }
 
     private async removeAllFromFileCache(
@@ -1202,25 +1197,6 @@ class Boot extends StateSubscriber {
                 this.removeFromFileCache(path, store)
             )
         );
-    }
-
-    public static applyProxyToInstance(instance: BaseStructure): BaseStructure {
-        return new Proxy(instance, {
-            set: (target: any, prop: string, value: any, receiver: any) => {
-                // skip the event from being emitted to prevent infinite loop
-                if (prop === 'event') {
-                    return Reflect.set(target, prop, value, receiver);
-                }
-                // emit the changed value
-                instance.next(Events.change, {
-                    prop,
-                    value,
-                    oldValue: target[prop],
-                });
-                // run the change
-                return Reflect.set(target, prop, value, receiver);
-            },
-        });
     }
 
     private async loadFile(
@@ -1264,7 +1240,7 @@ class Boot extends StateSubscriber {
                             }
 
                             // add a property watcher
-                            const instance = Boot.applyProxyToInstance(
+                            const instance = store.applyProxyToInstance(
                                 formatItem(item)
                             );
                             instance.next(Events.status, Status.configuring);
@@ -1316,7 +1292,7 @@ class Boot extends StateSubscriber {
             // delay the reload for some milliseconds to prevent multiple quick reloads
             clearTimeout(delayTimer as NodeJS.Timer);
             delayTimer = setTimeout(async () => {
-                this.debug(`Reloading dependencies.`);
+                store.debugLog(`Reloading dependencies.`, this.debug);
                 clearTimeout(delayTimer as NodeJS.Timer);
                 store.watcher?.removeAllListeners();
                 store.unwatchFiles();
@@ -1324,27 +1300,33 @@ class Boot extends StateSubscriber {
                 store.cache.simple._changedFiles.clear();
                 store.watchFiles();
                 attachWatcher();
-                this.debug(`Finished reloading dependencies.`);
+                store.debugLog(`Finished reloading dependencies.`, this.debug);
             }, this.config?.fileWatcherDelay || 100);
         };
 
         const attachWatcher = (): void => {
             store.watcher
                 ?.on('add', async (path) => {
-                    this.debug(`File '${path}' has been added.`);
-                    store.logger.debug(`File ${path} has been added...`);
+                    store.debugLog(
+                        `File '${path}' has been added.`,
+                        this.debug
+                    );
                     store.next(Events.fileAdd, path);
                     return handler(path);
                 })
                 ?.on('change', async (path) => {
-                    this.debug(`File '${path}' has changed.`);
-                    store.logger.debug(`File ${path} has changed...`);
+                    store.debugLog(
+                        `File '${path}' has been changed...`,
+                        this.debug
+                    );
                     store.next(Events.fileChange, path);
                     return handler(path);
                 })
                 ?.on('unlink', async (path) => {
-                    this.debug(`File '${path}' has been deleted.`);
-                    store.logger.debug(`File ${path} has been deleted...`);
+                    store.debugLog(
+                        `File '${path}' has been deleted.`,
+                        this.debug
+                    );
                     store.next(Events.fileUnlink, path);
                     return handler(path);
                 });
@@ -1442,8 +1424,7 @@ class Boot extends StateSubscriber {
                 store.registerScheduledTask(task);
             })
         );
-        store.logger.debug(`Run instances for '${dir.path}'.`);
-        this.debug(`Run instances for '${dir.path}'.`);
+        store.debugLog(`Run instances for '${dir.path}'.`, this.debug);
     }
 }
 
