@@ -81,11 +81,17 @@ export default async (): Promise<void> => {
 
         // add the boot files
         boot.next(Events.status, Status.registering);
+        const bootFilePath = resolve(boot.baseDir, './boot.js');
         let bootFile;
         try {
-            bootFile = await import(resolve(boot.baseDir, './boot.js'));
+            bootFile = await import(bootFilePath);
         } catch (e) {
-            store.logger.warn('No boot file specified. Skipping registering.');
+            store.logger.warn(
+                `Boot file '${bootFilePath}' not found. Skipped registering.`
+            );
+            boot.debug(
+                `Boot file '${bootFilePath}' not found. Skipped registering.`
+            );
             boot.next(Events.status, Status.registered);
             return;
         }
