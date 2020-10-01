@@ -31,7 +31,7 @@ class TestConfiguration extends Configuration {
     }
 }
 
-test.before(async t => {
+test.before(async (t) => {
     boot = new Boot();
     await boot.init();
     store = boot.store;
@@ -39,19 +39,26 @@ test.before(async t => {
     t.pass();
 });
 
-test.serial('should create a new automatic server and register it and subscribe to the states.', async t => {
-    const testServer = await store.register(TestServer, true);
-    testServer.subscribe(Status.started, (state: boolean) => {
-        if (!state) {
-            return;
-        }
+test.serial(
+    'should create a new automatic server and register it and subscribe to the states.',
+    async (t) => {
+        const testServer = await store.register(TestServer, true);
+        testServer.subscribe(
+            Status.started,
+            (state: boolean) => {
+                if (!state) {
+                    return;
+                }
 
-        console.log(state)
-        t.pass();
-    }, true);
-});
+                console.log(state);
+                t.pass();
+            },
+            true
+        );
+    }
+);
 
-test.after(async t => {
+test.after(async (t) => {
     await boot.shutdown();
     t.pass();
 });

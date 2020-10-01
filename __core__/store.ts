@@ -1,22 +1,20 @@
+import BaseStructure from './baseStructure';
+import Events from './events';
+import I18n from './i18n';
 import StateSubscriber from 'state-subscriber';
+import Status from './status';
+import Task from './task';
 import pino, { Logger } from 'pino';
-import { FSWatcher, watch } from 'chokidar';
-import { join, resolve } from 'path';
-import { filter } from 'lodash';
+import { Cache, Config, Constructor } from './interfaces';
 import { Debugger } from 'debug';
+import { FSWatcher, watch } from 'chokidar';
+import { PassThrough } from 'stream';
 import { ScheduledTask } from 'node-cron';
 import { createWriteStream, WriteStream } from 'fs';
-import { PassThrough } from 'stream';
+import { filter } from 'lodash';
+import { getEnvVar } from './functions';
+import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import I18n from './i18n';
-import Status from './status';
-import BaseStructure from './baseStructure';
-import { Cache, Config, Constructor } from './interfaces';
-import Task from './task';
-import Boot from './boot';
-import * as Types from './index';
-import Events from './events';
-
 export default class Store extends StateSubscriber {
     private readonly loggingStream?: WriteStream;
     public readonly debug: Debugger;
@@ -37,23 +35,25 @@ export default class Store extends StateSubscriber {
     private readonly bootDirectories: Config['directories'];
 
     constructor(
-        boot: Boot,
+        bootConfig: Config,
         config: {
+            baseDir: string;
             instanceName: string;
             logLevel?: string;
             language?: string;
-        }
+        },
+        debuggerFunction: (name: string) => Debugger
     ) {
         super();
-        this.debug = boot.generateDebugger('store');
-        this.bootDirectories = boot.getConfig().directories;
+        this.debug = debuggerFunction('store');
+        this.bootDirectories = bootConfig.directories;
 
         if (!config.logLevel) {
             config.logLevel = 'info';
         }
 
         this.i18n = new I18n(config.language);
-        this.baseDir = boot.baseDir;
+        this.baseDir = config.baseDir;
         this.cache = {
             simple: {
                 _fileMap: {},
@@ -62,7 +62,7 @@ export default class Store extends StateSubscriber {
             },
         };
 
-        const logPhysical = Boot.getEnvVar('LOG_PHYSICAL', true) as boolean;
+        const logPhysical = getEnvVar('LOG_PHYSICAL', true) as boolean;
         if (logPhysical) {
             const logThrough = new PassThrough();
 
@@ -76,10 +76,7 @@ export default class Store extends StateSubscriber {
             );
 
             this.loggingStream = createWriteStream(
-                resolve(
-                    boot.getConfig().logDirectory,
-                    `${Date.now().toString()}.log`
-                )
+                resolve(bootConfig.logDirectory, `${Date.now().toString()}.log`)
             );
             logThrough.pipe(this.loggingStream);
             logThrough.pipe(process.stdout);
@@ -90,10 +87,7 @@ export default class Store extends StateSubscriber {
                 timestamp: pino.stdTimeFunctions.epochTime,
                 prettyPrint:
                     process.env.NODE_ENV !== 'production' &&
-                    (!Boot.getEnvVar(
-                        'LOG_DISABLE_PRETTY_PRINT',
-                        true
-                    ) as boolean),
+                    (!getEnvVar('LOG_DISABLE_PRETTY_PRINT', true) as boolean),
             });
         }
     }
@@ -635,13 +629,6 @@ export default class Store extends StateSubscriber {
         this.addInstance(this.cache.simple._fileMap[path]);
         this.debugLog(`Registered instance from path '${path}'.`, this.debug);
         return this.cache.simple._fileMap[path];
-    }
-
-    /**
-     * Get a class by giving in the same name as the class has.
-     */
-    public getClassByName(name: string): BaseStructure {
-        return (Types as any)[name];
     }
 
     /**

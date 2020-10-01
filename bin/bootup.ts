@@ -17,13 +17,13 @@ let boot: Boot,
     getAllInstances: Store['getAllInstances'],
     getInstanceByName: Store['getInstanceByName'],
     getInstancesOfType: Store['getInstancesOfType'],
-    getClassByName: Store['getClassByName'],
     register: Store['register'],
     unregister: Store['unregister'],
     unregisterBulk: Store['unregisterBulk'],
     registerBulk: Store['registerBulk'],
     registerUpdate: Store['registerUpdate'];
 
+// export the static method without using Boot.
 export {
     boot,
     store,
@@ -32,7 +32,6 @@ export {
     getInstance,
     getAllInstances,
     getInstancesOfType,
-    getClassByName,
     getInstanceByName,
     register,
     registerBulk,
@@ -76,7 +75,6 @@ export default async (): Promise<void> => {
         unregister = store.unregister.bind(store);
         unregisterBulk = store.unregisterBulk.bind(store);
         registerUpdate = store.registerUpdate.bind(store);
-        getClassByName = store.getClassByName.bind(store);
         getInstanceByName = store.getInstanceByName.bind(store);
 
         // add the boot files

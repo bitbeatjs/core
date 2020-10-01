@@ -1,39 +1,36 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "outDir": ".",
-    "declaration": true,
-    "allowJs": true,
-    "module": "esnext",
-    "target": "es6",
-    "lib": ["es2017"],
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "types": ["node"],
-    "downlevelIteration": true,
-    "resolveJsonModule": true
-  },
-  "files": [
-    "./index.ts",
-    "./bitbeat.config.ts"
-  ],
-  "exclude": [
-    "./node_modules"
-  ],
-  "include": [
-    "./bin",
-    "./__core__",
-    "./__tests__",
-    "./actions",
-    "./initializers",
-    "./connectors",
-    "./config",
-    "./middlewares",
-    "./servers",
-    "./tasks",
-    "./utils",
-    "./locales"
-  ]
+    "compilerOptions": {
+        "rootDir": ".",
+        "baseUrl": ".",
+        "outDir": ".",
+        "declaration": true,
+        "allowJs": true,
+        "module": "esnext",
+        "target": "es6",
+        "lib": ["es2017"],
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "strict": true,
+        "types": ["node"],
+        "downlevelIteration": true,
+        "resolveJsonModule": true
+    },
+    "files": ["./index.ts", "./bitbeat.config.ts"],
+    "exclude": ["./node_modules"],
+    "include": [
+        "./bin",
+        "./__core__",
+        "./__tests__",
+        "./actions",
+        "./initializers",
+        "./connectors",
+        "./config",
+        "./middlewares",
+        "./servers",
+        "./tasks",
+        "./utils",
+        "./locales"
+    ]
 }

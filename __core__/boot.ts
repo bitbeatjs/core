@@ -1,26 +1,26 @@
-import { existsSync, lstatSync, readdir } from 'fs';
-import { resolve } from 'path';
 import * as Throttle from 'promise-parallel-throttle';
-import { groupBy, merge, reduce } from 'lodash';
-import StateSubscriber from 'state-subscriber';
-import { getPriority, NetworkInterfaceInfo, networkInterfaces, cpus } from 'os';
-import ms from 'ms';
-import { debug, Debugger } from 'debug';
-import { schedule, validate } from 'node-cron';
-import { PackageJson } from 'type-fest';
-import { isMaster, fork, Worker } from 'cluster';
-import { Config, DirectorySettings } from './interfaces';
 import BaseStructure from './baseStructure';
-import Store from './store';
-import Status from './status';
-import Middleware from './middleware';
-import Task from './task';
 import Events from './events';
+import Middleware from './middleware';
+import StateSubscriber from 'state-subscriber';
+import Status from './status';
+import Store from './store';
+import Task from './task';
+import ms from 'ms';
+import { Config, DirectorySettings } from './interfaces';
+import { PackageJson } from 'type-fest';
+import { debug, Debugger } from 'debug';
+import { existsSync, lstatSync, readdir } from 'fs';
+import { getEnvVar } from './functions';
+import { getPriority, NetworkInterfaceInfo, networkInterfaces, cpus } from 'os';
+import { groupBy, merge, reduce } from 'lodash';
+import { isMaster, fork, Worker } from 'cluster';
+import { resolve } from 'path';
+import { schedule, validate } from 'node-cron';
 import {
     name as packageName,
     version as packageVersion,
 } from '../package.json';
-
 class Boot extends StateSubscriber {
     public readonly debug: Debugger;
     public readonly version: string = packageVersion;
@@ -86,9 +86,9 @@ class Boot extends StateSubscriber {
     public generateDebugger(name: string): Debugger {
         const scopedDebugger = debug(`${this.name}:${name}`);
 
-        if (Boot.getEnvVar('BITBEAT_DEBUG', true) as boolean) {
+        if (getEnvVar('BITBEAT_DEBUG', true) as boolean) {
             debug.enable(
-                (Boot.getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string) ||
+                (getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string) ||
                     `${this.name}:*`
             );
         }
@@ -119,10 +119,15 @@ class Boot extends StateSubscriber {
 
         this.store =
             store ||
-            (new Store(this, {
-                instanceName: this.name,
-                logLevel: this.logLevel,
-            }) as Store);
+            (new Store(
+                this.config,
+                {
+                    baseDir: this.baseDir,
+                    instanceName: this.name,
+                    logLevel: this.logLevel,
+                },
+                this.generateDebugger
+            ) as Store);
 
         this.store.debugLog('Created store.', this.store.debug);
         await this.store.init();
@@ -148,43 +153,6 @@ class Boot extends StateSubscriber {
 
         this.store.debugLog('Initialized boot.', this.debug);
         this.next(Events.status, Status.initialized);
-    }
-
-    /**
-     * Get an environment variable parsed.
-     */
-    public static getEnvVar(
-        name: string,
-        convertToBoolean = false
-    ): string | boolean | undefined {
-        name = name.toUpperCase();
-
-        if (
-            !~name.toLowerCase().indexOf('bitbeat') &&
-            (process.env.BITBEAT_SCOPED?.toLowerCase() === 'true' ||
-                process.env.BITBEAT_SCOPED === '1')
-        ) {
-            name = `BITBEAT_${name.toUpperCase()}`;
-        }
-
-        if (!Object.prototype.hasOwnProperty.call(process.env, name)) {
-            return;
-        }
-
-        if (convertToBoolean) {
-            return (
-                process.env[name]?.toLowerCase() === 'true' ||
-                process.env[name] === '1'
-            );
-        }
-
-        let value = process.env[name] || '';
-        try {
-            value = JSON.parse(value);
-        } catch (e) {
-            // don't do anything;
-        }
-        return value;
     }
 
     /**
@@ -255,7 +223,7 @@ class Boot extends StateSubscriber {
             store.debugLog('Closed store.', this.debug);
             this.next(Events.status, Status.exit);
 
-            if (isMaster && Boot.getEnvVar('CLUSTER', true)) {
+            if (isMaster && getEnvVar('CLUSTER', true)) {
                 for (const worker of this.workerPool) {
                     worker.destroy();
                     store.debugLog(
@@ -441,9 +409,9 @@ class Boot extends StateSubscriber {
             store.debugLog('Finished starting boot.', this.debug);
 
             // start all in the cluster after it's provided in general
-            if (!isReboot && isMaster && Boot.getEnvVar('CLUSTER', true)) {
+            if (!isReboot && isMaster && getEnvVar('CLUSTER', true)) {
                 const workerCount =
-                    ((Boot.getEnvVar('CLUSTER_WORKERS') ||
+                    ((getEnvVar('CLUSTER_WORKERS') ||
                         cpus().length) as number) - 1;
                 for (let i = 0, l = workerCount; i < l; i++) {
                     const worker = fork();

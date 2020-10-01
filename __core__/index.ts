@@ -1,26 +1,26 @@
 // import the subclass
 import Action from './action';
 import ActionMiddleware from './middlewares/actionMiddleware';
-import Boot from './boot';
 import BaseStructure from './baseStructure';
+import Boot from './boot';
 import Cli from './cli';
 import Configuration from './config';
-import Connector from './connector';
 import Connection from './connection';
 import ConnectionMiddleware from './middlewares/connectionMiddleware';
+import Connector from './connector';
 import ConnectorMiddleware from './middlewares/connectorMiddleware';
 import Events from './events';
 import Initializer from './initializer';
 import InitializerMiddleware from './middlewares/initializerMiddleware';
 import Middleware from './middleware';
+import Result from './result';
 import Server from './server';
 import ServerMiddleware from './middlewares/serverMiddleware';
-import TaskMiddleware from './middlewares/taskMiddleware';
 import Status from './status';
 import Store from './store';
 import Task from './task';
+import TaskMiddleware from './middlewares/taskMiddleware';
 import Utility from './util';
-import Result from './result';
 
 /**
  * Export area for core classes.
@@ -50,4 +50,5 @@ export {
     Utility,
 };
 export * from './defaultProperties';
+export * from './functions';
 export * from './interfaces';

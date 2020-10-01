@@ -67,7 +67,7 @@ interface RunParameters {
     raw: any;
 }
 
-export {
+export type {
     Cache,
     Config,
     Constructor,

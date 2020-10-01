@@ -35,7 +35,7 @@ class TestConfiguration extends Configuration {
     }
 }
 
-test.before(async t => {
+test.before(async (t) => {
     boot = new Boot();
     await boot.init();
     store = boot.store;
@@ -43,38 +43,47 @@ test.before(async t => {
     t.pass();
 });
 
-test.serial('should create a new automatic server and register it', async t => {
-    await store.register(TestServer, true);
-    await boot.awaitRegister();
-    const testServer = store.getInstance(TestServer);
-    t.true(!!testServer && testServer instanceof TestServer);
-});
-
-test.serial('should create a new automatic configuration and register it', async t => {
-    await store.register(TestConfiguration, true);
-    await boot.awaitRegister();
-    const testConfig = store.getInstance(TestConfiguration);
-    t.true(!!testConfig && testConfig instanceof TestConfiguration);
-});
-
-test.serial('should update the server and use the new config and re-register it', async t => {
-    const testServer = store.getInstance(TestServer);
-    const newServer = testServer;
-
-    if (!testServer || !newServer) {
-        throw new Error('Could not find server.');
+test.serial(
+    'should create a new automatic server and register it',
+    async (t) => {
+        await store.register(TestServer, true);
+        await boot.awaitRegister();
+        const testServer = store.getInstance(TestServer);
+        t.true(!!testServer && testServer instanceof TestServer);
     }
+);
 
-    newServer.start = async () => {
+test.serial(
+    'should create a new automatic configuration and register it',
+    async (t) => {
+        await store.register(TestConfiguration, true);
+        await boot.awaitRegister();
         const testConfig = store.getInstance(TestConfiguration);
-        console.log(testConfig?.value.name);
-        console.log('Started.');
-    };
-    await store.registerUpdate(testServer, newServer);
-    await boot.awaitRegister();
-});
+        t.true(!!testConfig && testConfig instanceof TestConfiguration);
+    }
+);
 
-test.serial('should delete the server and the config', async t => {
+test.serial(
+    'should update the server and use the new config and re-register it',
+    async (t) => {
+        const testServer = store.getInstance(TestServer);
+        const newServer = testServer;
+
+        if (!testServer || !newServer) {
+            throw new Error('Could not find server.');
+        }
+
+        newServer.start = async () => {
+            const testConfig = store.getInstance(TestConfiguration);
+            console.log(testConfig?.value.name);
+            console.log('Started.');
+        };
+        await store.registerUpdate(testServer, newServer);
+        await boot.awaitRegister();
+    }
+);
+
+test.serial('should delete the server and the config', async (t) => {
     let testServer = store.getInstance(TestServer);
     let testConfig = store.getInstance(TestConfiguration);
     store.removeInstances(new Set([testServer, testConfig]));
@@ -83,7 +92,7 @@ test.serial('should delete the server and the config', async t => {
     t.true(!testServer && !testConfig);
 });
 
-test.after(async t => {
+test.after(async (t) => {
     await boot.shutdown();
     t.pass();
 });

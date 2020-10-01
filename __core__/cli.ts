@@ -1,6 +1,6 @@
 import { debug, Debugger } from 'debug';
 import { name } from '../package.json';
-import Boot from './boot';
+import { getEnvVar } from './functions';
 
 export default class Cli {
     private readonly signals: (NodeJS.Signals | string)[] = [
@@ -83,8 +83,8 @@ export default class Cli {
 
         if (
             !this.options.keepAlive ||
-            (Boot.getEnvVar('KEEP_ALIVE') !== undefined &&
-                !Boot.getEnvVar('KEEP_ALIVE', true))
+            (getEnvVar('KEEP_ALIVE') !== undefined &&
+                !getEnvVar('KEEP_ALIVE', true))
         ) {
             this.debug(`Keep alive disabled.`);
             return;
