@@ -29,15 +29,12 @@ test.serial('should reboot in less than 500 ms without a store', async (t) => {
 
 test.serial('should reboot in less 500 ms with a new store', async (t) => {
     await boot.stop();
-    const s = new Store(
-        boot.getConfig(),
-        {
-            instanceName: boot.name,
-            logLevel: boot.logLevel,
-            baseDir: boot.baseDir,
-        },
-        boot.generateDebugger
-    );
+    const s = new Store(boot.getConfig(), {
+        instanceName: boot.name,
+        logLevel: boot.logLevel,
+        baseDir: boot.baseDir,
+        debuggerFunction: boot.generateDebugger,
+    });
     await boot.init(s);
     await boot.start();
     t.true(
