@@ -15,9 +15,8 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import Boot from './boot';
 export default class Store extends StateSubscriber {
-    private name: string;
+    private readonly name: string;
     private readonly loggingStream?: WriteStream;
     public readonly debug: Debugger;
     private readonly registeredInstances: Set<
