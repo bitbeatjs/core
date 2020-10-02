@@ -11,7 +11,6 @@
         "moduleResolution": "node",
         "experimentalDecorators": true,
         "esModuleInterop": true,
-        "isolatedModules": true,
         "strict": true,
         "types": ["node"],
         "downlevelIteration": true,
@@ -19,18 +18,5 @@
     },
     "files": ["./index.ts", "./bitbeat.config.ts"],
     "exclude": ["./node_modules"],
-    "include": [
-        "./bin",
-        "./__core__",
-        "./__tests__",
-        "./actions",
-        "./initializers",
-        "./connectors",
-        "./config",
-        "./middlewares",
-        "./servers",
-        "./tasks",
-        "./utils",
-        "./locales"
-    ]
+    "include": ["./bin", "./__core__", "./__tests__", "./locales"]
 }
