@@ -1,22 +1,21 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "Bitbeat",
     "compilerOptions": {
-        "rootDir": ".",
-        "baseUrl": ".",
-        "outDir": ".",
         "declaration": true,
-        "allowJs": true,
-        "module": "esnext",
-        "target": "es6",
-        "lib": ["es2017"],
-        "moduleResolution": "node",
-        "experimentalDecorators": true,
-        "esModuleInterop": true,
-        "strict": true,
-        "types": ["node"],
         "downlevelIteration": true,
-        "resolveJsonModule": true
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "outDir": ".",
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "es2015",
+        "types": ["node"]
     },
-    "files": ["./index.ts", "./bitbeat.config.ts"],
     "exclude": ["./node_modules"],
+    "files": ["./index.ts", "./bitbeat.config.ts"],
     "include": ["./bin", "./__core__", "./__tests__", "./locales"]
 }

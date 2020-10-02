@@ -41,11 +41,11 @@ export default class Store extends StateSubscriber {
             instanceName: string;
             logLevel?: string;
             language?: string;
-        },
-        debuggerFunction: (name: string) => Debugger
+            debuggerFunction: (name: string, scope?: string) => Debugger;
+        }
     ) {
         super();
-        this.debug = debuggerFunction('store');
+        this.debug = config.debuggerFunction('store', config.instanceName);
         this.bootDirectories = bootConfig.directories;
 
         if (!config.logLevel) {

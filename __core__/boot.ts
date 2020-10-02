@@ -83,8 +83,8 @@ class Boot extends StateSubscriber {
     /**
      * This will generate you an instance of a debugger in the namespace of the core.
      */
-    public generateDebugger(name: string): Debugger {
-        const scopedDebugger = debug(`${this.name}:${name}`);
+    public generateDebugger(name: string, scope = this.name): Debugger {
+        const scopedDebugger = debug(`${scope}:${name}`);
 
         if (getEnvVar('BITBEAT_DEBUG', true) as boolean) {
             debug.enable(
@@ -119,15 +119,12 @@ class Boot extends StateSubscriber {
 
         this.store =
             store ||
-            (new Store(
-                this.config,
-                {
-                    baseDir: this.baseDir,
-                    instanceName: this.name,
-                    logLevel: this.logLevel,
-                },
-                this.generateDebugger
-            ) as Store);
+            new Store(this.config, {
+                baseDir: this.baseDir,
+                instanceName: this.name,
+                logLevel: this.logLevel,
+                debuggerFunction: this.generateDebugger,
+            });
 
         this.store.debugLog('Created store.', this.store.debug);
         await this.store.init();
