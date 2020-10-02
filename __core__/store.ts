@@ -6,7 +6,7 @@ import Status from './status';
 import Task from './task';
 import pino, { Logger } from 'pino';
 import { Cache, Config, Constructor } from './interfaces';
-import { Debugger } from 'debug';
+import { debug, Debugger } from 'debug';
 import { FSWatcher, watch } from 'chokidar';
 import { PassThrough } from 'stream';
 import { ScheduledTask } from 'node-cron';
@@ -15,8 +15,9 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import { boot } from '../bin/bootup';
+import Boot from './boot';
 export default class Store extends StateSubscriber {
+    private name: string;
     private readonly loggingStream?: WriteStream;
     public readonly debug: Debugger;
     private readonly registeredInstances: Set<
@@ -35,18 +36,18 @@ export default class Store extends StateSubscriber {
     public watcher?: FSWatcher;
     private readonly bootDirectories: Config['directories'];
 
-    constructor(
-        bootConfig: Config,
-        config: {
-            baseDir: string;
-            instanceName: string;
-            logLevel?: string;
-            language?: string;
-        }
-    ) {
+    constructor(config: {
+        directories: Config['directories'];
+        logDirectory: Config['logDirectory'];
+        baseDir: string;
+        instanceName: string;
+        logLevel?: string;
+        language?: string;
+    }) {
         super();
-        this.debug = boot.generateDebugger('store', config.instanceName);
-        this.bootDirectories = bootConfig.directories;
+        this.name = config.instanceName;
+        this.debug = this.generateDebugger('store', this.name);
+        this.bootDirectories = config.directories;
 
         if (!config.logLevel) {
             config.logLevel = 'info';
@@ -76,7 +77,7 @@ export default class Store extends StateSubscriber {
             );
 
             this.loggingStream = createWriteStream(
-                resolve(bootConfig.logDirectory, `${Date.now().toString()}.log`)
+                resolve(config.logDirectory, `${Date.now().toString()}.log`)
             );
             logThrough.pipe(this.loggingStream);
             logThrough.pipe(process.stdout);
@@ -821,4 +822,20 @@ export default class Store extends StateSubscriber {
         debugFunction(message);
         this.logger.debug(message);
     };
+
+    /**
+     * This will generate you an instance of a debugger in the namespace of the core.
+     */
+    public generateDebugger(name: string, scope = this.name): Debugger {
+        const scopedDebugger = debug(`${scope}:${name}`);
+
+        if (getEnvVar('BITBEAT_DEBUG', true) as boolean) {
+            debug.enable(
+                (getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string) ||
+                    `${this.name}:*`
+            );
+        }
+
+        return scopedDebugger;
+    }
 }

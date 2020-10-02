@@ -22,7 +22,7 @@ import {
     version as packageVersion,
 } from '../package.json';
 class Boot extends StateSubscriber {
-    public readonly debug: Debugger;
+    public debug: Debugger | any;
     public readonly version: string = packageVersion;
     public readonly ips: string[];
     public readonly id: string;
@@ -52,8 +52,6 @@ class Boot extends StateSubscriber {
             process.env.NODE_ENV = 'production';
         }
 
-        // create the debug
-        this.debug = this.generateDebugger('boot');
         this.ips = reduce(
             Object.values(Boot.getIPs()),
             (arr: any, item: any) => {
@@ -81,22 +79,6 @@ class Boot extends StateSubscriber {
     }
 
     /**
-     * This will generate you an instance of a debugger in the namespace of the core.
-     */
-    public generateDebugger(name: string, scope = this.name): Debugger {
-        const scopedDebugger = debug(`${scope}:${name}`);
-
-        if (getEnvVar('BITBEAT_DEBUG', true) as boolean) {
-            debug.enable(
-                (getEnvVar('BITBEAT_DEBUG_NAMESPACE') as string) ||
-                    `${this.name}:*`
-            );
-        }
-
-        return scopedDebugger;
-    }
-
-    /**
      * Init the boot. Should run after the creation and before the start.
      */
     public async init(
@@ -115,16 +97,18 @@ class Boot extends StateSubscriber {
             this.projectName = projectPackageJson.name;
         }
 
-        this.debug('Starting boot.');
-
         this.store =
             store ||
-            new Store(this.config, {
+            (new Store({
+                directories: this.config.directories,
+                logDirectory: this.config.logDirectory,
                 baseDir: this.baseDir,
                 instanceName: this.name,
                 logLevel: this.logLevel,
-            });
+            }) as Store);
 
+        this.debug = this.store.generateDebugger('boot');
+        this.debug('Starting boot.');
         this.store.debugLog('Created store.', this.store.debug);
         await this.store.init();
         this.store.debugLog('Initialized store.', this.store.debug);
