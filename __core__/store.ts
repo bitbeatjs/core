@@ -15,6 +15,7 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
+import { boot } from '../bin/bootup';
 export default class Store extends StateSubscriber {
     private readonly loggingStream?: WriteStream;
     public readonly debug: Debugger;
@@ -41,11 +42,10 @@ export default class Store extends StateSubscriber {
             instanceName: string;
             logLevel?: string;
             language?: string;
-            debuggerFunction: (name: string, scope?: string) => Debugger;
         }
     ) {
         super();
-        this.debug = config.debuggerFunction('store', config.instanceName);
+        this.debug = boot.generateDebugger('store', config.instanceName);
         this.bootDirectories = bootConfig.directories;
 
         if (!config.logLevel) {

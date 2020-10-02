@@ -33,7 +33,6 @@ test.serial('should reboot in less 500 ms with a new store', async (t) => {
         instanceName: boot.name,
         logLevel: boot.logLevel,
         baseDir: boot.baseDir,
-        debuggerFunction: boot.generateDebugger,
     });
     await boot.init(s);
     await boot.start();
