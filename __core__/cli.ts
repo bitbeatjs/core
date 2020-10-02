@@ -1,4 +1,4 @@
-import { debug, Debugger } from 'debug';
+import { Debugger } from 'debug';
 import { name } from '../package.json';
 import { getEnvVar } from './functions';
 import { generateDebugger } from '../bin/bootup';
