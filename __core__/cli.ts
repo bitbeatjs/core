@@ -1,6 +1,7 @@
 import { debug, Debugger } from 'debug';
 import { name } from '../package.json';
 import { getEnvVar } from './functions';
+import { generateDebugger } from '../bin/bootup';
 
 export default class Cli {
     private readonly signals: (NodeJS.Signals | string)[] = [
@@ -47,11 +48,14 @@ export default class Cli {
                     console.error('Timeout while cleaning up.');
                     process.exit(1);
                 }, this.options.timeout);
-                this.debug(
-                    `Signal '${sig}' ${
-                        sig !== signal ? `with code '${signal}' ` : ''
-                    }incoming.`
-                );
+
+                if (this.debug) {
+                    this.debug(
+                        `Signal '${sig}' ${
+                            sig !== signal ? `with code '${signal}' ` : ''
+                        }incoming.`
+                    );
+                }
 
                 (async () => {
                     try {
@@ -76,9 +80,8 @@ export default class Cli {
     }
 
     async initialize(): Promise<void> {
-        this.debug = debug(`${name}:cli`);
-        this.debug(`Started booting ${name}.`);
         await this.options.start();
+        this.debug = generateDebugger('cli');
         this.debug(`Finished booting ${name}.`);
 
         if (
