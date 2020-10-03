@@ -24,9 +24,13 @@ const getFiles = async () => {
         });
     });
 };
+let files = [];
+const getAllFiles = async () => {
+    files = await getFiles();
+};
 const cleanJsAndDeclarations = async () => {
     return src(
-        (await getFiles()).reduce((arr, file) => {
+        files.reduce((arr, file) => {
             const fileName = file.replace('.ts', '');
             arr = arr.concat([`${fileName}.js`, `${fileName}.d.ts`]);
             return arr;
@@ -61,8 +65,7 @@ const compileTypeScript = (onlyChanged = true) => {
 };
 const compileIncrementalFiles = () => compileTypeScript();
 const compileAllFiles = () => compileTypeScript(false);
-const watchFiles = async () =>
-    watch(await getFiles(), series([compileIncrementalFiles]));
+const watchFiles = async () => watch(files, series([compileIncrementalFiles]));
 
-task('default', series([cleanJsAndDeclarations, compileAllFiles]));
+task('default', series([getAllFiles, cleanJsAndDeclarations, compileAllFiles]));
 task('watch', series([task('default'), watchFiles]));
