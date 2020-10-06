@@ -362,7 +362,6 @@ export default class Store extends StateSubscriber {
         instances: Set<InstanceType<Constr>>,
         reboot = true
     ): Promise<Set<InstanceType<Constr>>> {
-        console.log(instances);
         for (const entry of instances) {
             if (!this.registeredInstances.has(entry)) {
                 throw new Error('Not registered.');
