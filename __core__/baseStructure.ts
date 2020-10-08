@@ -15,6 +15,8 @@ export default class BaseStructure extends StateSubscriber {
 
     /**
      * Version your structure for may later easy upgrading without shutting down old versions.
+     * The type of versioning is semantic versioning. This means you can use versions like:
+     * this.version = 1; or this.version = '1.0.0'; or this.version = 'v2'; or this.version = '42.6.7.9.3-alpha'; (for what reason you will ever need that kind of.. but it's possible)
      */
     public version: string | number = '1.0.0';
 

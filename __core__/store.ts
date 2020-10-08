@@ -15,7 +15,7 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import { compare } from 'semver';
+import { compare, satisfies } from 'semver';
 export default class Store extends StateSubscriber {
     private readonly name: string;
     private readonly loggingStream?: WriteStream;
@@ -504,6 +504,40 @@ export default class Store extends StateSubscriber {
         instance = items.find((item) => item.version === version) as any;
         this.debugLog(`Found instance '${instance.name}'.`, this.debug);
         return instance;
+    }
+
+    /**
+     * Get the instance with name and type.
+     * Will return the same type given in type or undefined if not found.
+     * If no version, it will get the latest else it will return a fixed version.
+     */
+    public getInstancesWithMinVersion<Constr extends Constructor>(
+        type: Constr,
+        version: string | number,
+        name?: string,
+        gte = true
+    ): Set<InstanceType<Constr>> {
+        if (!type) {
+            throw new Error(`Can't fetch an instance of undefined.`);
+        }
+
+        let items = [...this.getInstancesOfType(type)];
+        if (name) {
+            items = filter(items, (item) => item.name === name);
+        }
+
+        if (!items.length) {
+            return new Set();
+        }
+
+        const instances = items.filter((item) =>
+            satisfies(
+                item.version.toString(),
+                `>${gte ? '=' : ''}${version.toString()}`
+            )
+        ) as any;
+        this.debugLog(`Found '${instances.length}' instances.`, this.debug);
+        return new Set(instances);
     }
 
     /**

@@ -15,6 +15,7 @@ let boot: Boot,
     logger: Logger,
     generateDebugger: Store['generateDebugger'],
     getInstance: Store['getInstance'],
+    getInstancesWithMinVersion: Store['getInstancesWithMinVersion'],
     getAllInstances: Store['getAllInstances'],
     getInstanceByName: Store['getInstanceByName'],
     getInstancesOfType: Store['getInstancesOfType'],
@@ -32,6 +33,7 @@ export {
     cache,
     generateDebugger,
     getInstance,
+    getInstancesWithMinVersion,
     getAllInstances,
     getInstancesOfType,
     getInstanceByName,
@@ -71,6 +73,9 @@ export default async (): Promise<void> => {
         // rebind all functions to the store
         generateDebugger = store.generateDebugger.bind(store);
         getInstance = store.getInstance.bind(store);
+        getInstancesWithMinVersion = store.getInstancesWithMinVersion.bind(
+            store
+        );
         getAllInstances = store.getAllInstances.bind(store);
         getInstancesOfType = store.getInstancesOfType.bind(store);
         register = store.register.bind(store);
