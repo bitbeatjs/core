@@ -15,7 +15,7 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import { compare, coerce } from 'semver';
+import { compare } from 'semver';
 export default class Store extends StateSubscriber {
     private readonly name: string;
     private readonly loggingStream?: WriteStream;
