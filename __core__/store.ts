@@ -507,9 +507,9 @@ export default class Store extends StateSubscriber {
     }
 
     /**
-     * Get the instance with name and type.
-     * Will return the same type given in type or undefined if not found.
-     * If no version, it will get the latest else it will return a fixed version.
+     * Get all instances with a minimum version and type.
+     * Will return a Set of instances.
+     * You can skip the name if you want and make it more general. There is also an option to disable the gte option to only get instances with versions greater than the given.
      */
     public getInstancesWithMinVersion<Constr extends Constructor>(
         type: Constr,
@@ -533,7 +533,11 @@ export default class Store extends StateSubscriber {
         const instances = items.filter((item) =>
             satisfies(
                 item.version.toString(),
-                `>${gte ? '=' : ''}${version.toString()}`
+                `>${gte ? '=' : ''}${version
+                    .toString()
+                    .replace(/>/gi, '')
+                    .replace(/=/gi, '')
+                    .replace(/</gi, '')}`
             )
         ) as any;
         this.debugLog(`Found '${instances.length}' instances.`, this.debug);
