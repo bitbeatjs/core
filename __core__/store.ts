@@ -15,6 +15,7 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
+import { compare, coerce } from 'semver';
 export default class Store extends StateSubscriber {
     private readonly name: string;
     private readonly loggingStream?: WriteStream;
@@ -474,29 +475,14 @@ export default class Store extends StateSubscriber {
      */
     public getInstance<Constr extends Constructor>(
         type: Constr,
-        nameOrVersion?: string | number,
-        versionOrName?: number | string
+        name?: string,
+        version?: string | number
     ): InstanceType<Constr> | undefined {
         if (!type) {
             throw new Error(`Can't fetch an instance of undefined.`);
         }
 
-        let version = -1;
-        let name = '';
         let items = [...this.getInstancesOfType(type)];
-
-        if (typeof nameOrVersion === 'string') {
-            name = nameOrVersion as string;
-        } else if (typeof nameOrVersion === 'number') {
-            version = nameOrVersion as number;
-        }
-
-        if (typeof versionOrName === 'string') {
-            name = versionOrName as string;
-        } else if (typeof versionOrName === 'number') {
-            version = versionOrName as number;
-        }
-
         if (name) {
             items = filter(items, (item) => item.name === name);
         }
@@ -505,10 +491,12 @@ export default class Store extends StateSubscriber {
             return;
         }
 
-        items.sort((a, b) => b.version - a.version);
+        items.sort((a, b) =>
+            compare(b.version.toString(), a.version.toString())
+        );
         let [instance] = items;
 
-        if (version === -1) {
+        if (!version) {
             this.debugLog(`Found instance '${instance.name}'.`, this.debug);
             return instance as InstanceType<Constr>;
         }
@@ -524,7 +512,7 @@ export default class Store extends StateSubscriber {
      */
     public getInstanceByName(
         name: string,
-        version = -1
+        version?: string | number
     ): BaseStructure | undefined {
         const items = filter(
             [...this.instances],
@@ -536,7 +524,9 @@ export default class Store extends StateSubscriber {
             return;
         }
 
-        items.sort((a, b) => b.version - a.version);
+        items.sort((a, b) =>
+            compare(b.version.toString(), a.version.toString())
+        );
         let instance: BaseStructure | undefined;
         [instance] = items;
 
@@ -545,7 +535,7 @@ export default class Store extends StateSubscriber {
             return;
         }
 
-        if (version === -1) {
+        if (!version) {
             this.debugLog(`Found instance '${instance.name}'.`, this.debug);
             return instance;
         }

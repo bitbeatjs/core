@@ -16,7 +16,7 @@ export default class BaseStructure extends StateSubscriber {
     /**
      * Version your structure for may later easy upgrading without shutting down old versions.
      */
-    public version = 1;
+    public version: string | number = '1.0.0';
 
     /**
      * Set the initializePriority. Higher means earlier.

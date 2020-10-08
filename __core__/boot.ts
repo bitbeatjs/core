@@ -21,6 +21,7 @@ import {
     name as packageName,
     version as packageVersion,
 } from '../package.json';
+import { valid, coerce } from 'semver';
 class Boot extends StateSubscriber {
     public debug: Debugger | any;
     public readonly version: string = packageVersion;
@@ -1188,6 +1189,15 @@ class Boot extends StateSubscriber {
                             // try to create a class instance or run a function
                             if (typeof item === 'function') {
                                 item = new item();
+                                const versionValid = valid(
+                                    coerce(item.version)
+                                );
+
+                                if (!versionValid) {
+                                    throw new Error(
+                                        'The set version is not valid. Please check the semantic versioning.'
+                                    );
+                                }
 
                                 if (!(item instanceof BaseStructure)) {
                                     throw new Error(

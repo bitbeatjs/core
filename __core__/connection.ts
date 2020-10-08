@@ -2,7 +2,7 @@ import StateSubscriber from 'state-subscriber';
 import { Socket } from 'net';
 import { createHash } from 'crypto';
 import Server from './server';
-import { boot, logger } from '../bin/bootup';
+import { logger } from '../bin/bootup';
 
 export default class Connection extends StateSubscriber {
     public secure: boolean;
@@ -49,21 +49,5 @@ export default class Connection extends StateSubscriber {
         logger.debug(`Closing connection '${this.id}'.`);
         clearInterval(this.keepAliveInterval);
         logger.debug(`Closed connection '${this.id}'.`);
-    }
-
-    /**
-     * Override the instanceof method to ensure the compatibility for different versions.
-     */
-    static [Symbol.hasInstance](instance: Connection): boolean | undefined {
-        const name = this.prototype.constructor.name.toString();
-        (this.prototype as any)[`_is${name}`] = true;
-        boot.debug(
-            `Checking if '${instance.constructor.name}' is an instance of ${name}.`
-        );
-        return (
-            instance.constructor.prototype[`_is${name}`] &&
-            instance.constructor.prototype[`_is${name}`] ===
-                (this.prototype as any)[`_is${name}`]
-        );
     }
 }
