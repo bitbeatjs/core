@@ -15,7 +15,7 @@ import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import { compare, satisfies } from 'semver';
+import { compare, satisfies, coerce, SemVer } from 'semver';
 export default class Store extends StateSubscriber {
     private readonly name: string;
     private readonly loggingStream?: WriteStream;
@@ -492,7 +492,10 @@ export default class Store extends StateSubscriber {
         }
 
         items.sort((a, b) =>
-            compare(b.version.toString(), a.version.toString())
+            compare(
+                coerce(b.version.toString()) as SemVer,
+                coerce(a.version.toString()) as SemVer
+            )
         );
         let [instance] = items;
 
@@ -532,7 +535,7 @@ export default class Store extends StateSubscriber {
 
         const instances = items.filter((item) =>
             satisfies(
-                item.version.toString(),
+                coerce(item.version.toString()) as SemVer,
                 `>${gte ? '=' : ''}${version
                     .toString()
                     .replace(/>/gi, '')
@@ -563,7 +566,10 @@ export default class Store extends StateSubscriber {
         }
 
         items.sort((a, b) =>
-            compare(b.version.toString(), a.version.toString())
+            compare(
+                coerce(b.version.toString()) as SemVer,
+                coerce(a.version.toString()) as SemVer
+            )
         );
         let instance: BaseStructure | undefined;
         [instance] = items;
