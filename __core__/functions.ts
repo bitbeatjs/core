@@ -4,7 +4,7 @@
 const getEnvVar = (
     name: string,
     convertToBoolean = false
-): string | boolean | undefined => {
+): any | boolean | undefined => {
     name = name.toUpperCase();
 
     if (
