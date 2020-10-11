@@ -1,21 +1,22 @@
 import BaseStructure from './baseStructure';
 import Events from './events';
 import I18n from './i18n';
+import Result from './result';
 import StateSubscriber from 'state-subscriber';
 import Status from './status';
 import Task from './task';
 import pino, { Logger } from 'pino';
 import { Cache, Config, Constructor } from './interfaces';
-import { debug, Debugger } from 'debug';
 import { FSWatcher, watch } from 'chokidar';
 import { PassThrough } from 'stream';
 import { ScheduledTask } from 'node-cron';
+import { compare, satisfies, coerce, SemVer } from 'semver';
 import { createWriteStream, WriteStream } from 'fs';
+import { debug, Debugger } from 'debug';
 import { filter } from 'lodash';
 import { getEnvVar } from './functions';
 import { join, resolve } from 'path';
 import { name as packageName } from '../package.json';
-import { compare, satisfies, coerce, SemVer } from 'semver';
 export default class Store extends StateSubscriber {
     private readonly name: string;
     private readonly loggingStream?: WriteStream;
