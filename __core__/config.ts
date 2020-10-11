@@ -22,7 +22,7 @@ export default class Configuration extends BaseStructure {
     } {
         return merge(
             {},
-            this.default,
+            this.default || {},
             this[process.env.NODE_ENV?.toLowerCase() as string] || {}
         );
     }
