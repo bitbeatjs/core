@@ -873,7 +873,7 @@ export default class Store extends StateSubscriber {
     }
 
     /**
-     * This will return all possible keys and functions of an instance or it's root.
+     * This will return all possible prototypes of an instance.
      */
     private getTreeOfPrototypes<Constr extends Constructor>(
         instance: Constr
