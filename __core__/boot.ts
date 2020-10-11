@@ -9,7 +9,7 @@ import Task from './task';
 import ms from 'ms';
 import { Config, DirectorySettings } from './interfaces';
 import { PackageJson } from 'type-fest';
-import { debug, Debugger } from 'debug';
+import { Debugger } from 'debug';
 import { existsSync, lstatSync, readdir } from 'fs';
 import { getEnvVar } from './functions';
 import { getPriority, NetworkInterfaceInfo, networkInterfaces, cpus } from 'os';
@@ -22,6 +22,7 @@ import {
     version as packageVersion,
 } from '../package.json';
 import { valid, coerce } from 'semver';
+
 class Boot extends StateSubscriber {
     public debug: Debugger | any;
     public readonly version: string = packageVersion;

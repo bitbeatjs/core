@@ -870,4 +870,40 @@ export default class Store extends StateSubscriber {
 
         return scopedDebugger;
     }
+
+    /**
+     * This will return all possible keys and functions of an instance or it's root.
+     */
+    private getTreeOfPrototypes<Constr extends Constructor>(
+        instance: Constr
+    ): Set<any> {
+        const getPrototypesOfInstance = (
+            inst: any,
+            prototypes: Set<any> = new Set()
+        ): Set<any> => {
+            const proto = Reflect.getPrototypeOf(inst);
+            if (!proto) {
+                return prototypes;
+            }
+
+            prototypes.add(proto);
+            return getPrototypesOfInstance(proto, prototypes);
+        };
+        return getPrototypesOfInstance(instance);
+    }
+
+    /**
+     * This will return all possible keys and functions of an instance or it's root.
+     */
+    private getAllKeysOfInstance<Constr extends Constructor>(
+        instance: Constr
+    ): Set<string> {
+        const protos = this.getTreeOfPrototypes(instance);
+        const properties = [...protos].reduce(
+            (arr, proto) => (arr = arr.concat(Reflect.ownKeys(proto))),
+            []
+        );
+        return new Set(properties);
+    }
+
 }
