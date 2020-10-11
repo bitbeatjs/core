@@ -13,6 +13,7 @@ let boot: Boot,
     store: Store,
     cache: Store['cache'],
     logger: Logger,
+    debugLog: Store['debugLog'],
     generateDebugger: Store['generateDebugger'],
     getInstance: Store['getInstance'],
     getInstancesWithMinVersion: Store['getInstancesWithMinVersion'],
@@ -31,6 +32,7 @@ export {
     store,
     logger,
     cache,
+    debugLog,
     generateDebugger,
     getInstance,
     getInstancesWithMinVersion,
@@ -71,6 +73,7 @@ export default async (): Promise<void> => {
         cache = store.cache;
 
         // rebind all functions to the store
+        debugLog = store.debugLog.bind(store);
         generateDebugger = store.generateDebugger.bind(store);
         getInstance = store.getInstance.bind(store);
         getInstancesWithMinVersion = store.getInstancesWithMinVersion.bind(
