@@ -11,7 +11,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { PassThrough } from 'stream';
 import { ScheduledTask } from 'node-cron';
 import { compare, satisfies, coerce, SemVer } from 'semver';
-import { createWriteStream, WriteStream } from 'fs';
+import { createWriteStream, WriteStream, existsSync, mkdirSync } from 'fs';
 import { debug, Debugger } from 'debug';
 import { filter } from 'lodash';
 import { getEnvVar } from './functions';
@@ -36,6 +36,8 @@ export default class Store extends StateSubscriber {
     public updateTime: number = Date.now();
     public watcher?: FSWatcher;
     private readonly bootDirectories: Config['directories'];
+    public preLogOut: Set<NodeJS.WriteStream> = new Set();
+    public postLogOut: Set<NodeJS.WriteStream> = new Set();
 
     constructor(config: {
         directories: Config['directories'];
@@ -64,34 +66,54 @@ export default class Store extends StateSubscriber {
             },
         };
 
+        // create the logger
         const logPhysical = getEnvVar('LOG_PHYSICAL', true) as boolean;
-        if (logPhysical) {
-            const logThrough = new PassThrough();
+        const logThrough = new PassThrough();
 
-            this.logger = pino(
-                {
-                    name: packageName,
-                    level: process.env.LOG_LEVEL || config.logLevel,
-                    timestamp: pino.stdTimeFunctions.epochTime,
-                },
-                logThrough
-            );
-
-            this.loggingStream = createWriteStream(
-                resolve(config.logDirectory, `${Date.now().toString()}.log`)
-            );
-            logThrough.pipe(this.loggingStream);
-            logThrough.pipe(process.stdout);
-        } else {
-            this.logger = pino({
+        this.logger = pino(
+            {
                 name: packageName,
                 level: process.env.LOG_LEVEL || config.logLevel,
                 timestamp: pino.stdTimeFunctions.epochTime,
                 prettyPrint:
                     process.env.NODE_ENV !== 'production' &&
                     (!getEnvVar('LOG_DISABLE_PRETTY_PRINT', true) as boolean),
-            });
+            },
+            logThrough
+        );
+
+        // add a method to connect to the stream before the stdout
+        if (this.preLogOut.size) {
+            this.preLogOut.forEach((stream) => logThrough.pipe(stream));
         }
+
+        logThrough.pipe(process.stdout);
+
+        // add a method to connect to the stream after the stdout
+        if (this.postLogOut.size) {
+            this.postLogOut.forEach((stream) => logThrough.pipe(stream));
+        }
+
+        // attach the physical file to the logging stream
+        if (logPhysical) {
+            this.checkAndCreateDirectory(config.logDirectory);
+            this.loggingStream = createWriteStream(
+                resolve(config.logDirectory, `${Date.now().toString()}.log`)
+            );
+            logThrough.pipe(this.loggingStream);
+        }
+    }
+
+    /**
+     * Checks a directory and creates it, if not existing.
+     */
+    public checkAndCreateDirectory(dir: string): boolean {
+        const exists = existsSync(dir);
+        if (!exists) {
+            mkdirSync(dir);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -906,5 +928,4 @@ export default class Store extends StateSubscriber {
         );
         return new Set(properties);
     }
-
 }
