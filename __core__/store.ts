@@ -111,9 +111,8 @@ export default class Store extends StateSubscriber {
         const exists = existsSync(dir);
         if (!exists) {
             mkdirSync(dir);
-            return true;
         }
-        return false;
+        return !exists;
     }
 
     /**
