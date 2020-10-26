@@ -5,7 +5,7 @@ import Result from './result';
 import StateSubscriber from 'state-subscriber';
 import Status from './status';
 import Task from './task';
-import pino, { Logger } from 'pino';
+import pino, { Logger, LoggerOptions } from 'pino';
 import { Cache, Config, Constructor } from './interfaces';
 import { FSWatcher, watch } from 'chokidar';
 import { PassThrough } from 'stream';
@@ -45,6 +45,7 @@ export default class Store extends StateSubscriber {
         baseDir: string;
         instanceName: string;
         logLevel?: string;
+        logTimeFormat: LoggerOptions['timestamp'];
         language?: string;
     }) {
         super();
@@ -74,7 +75,8 @@ export default class Store extends StateSubscriber {
             {
                 name: packageName,
                 level: process.env.LOG_LEVEL || config.logLevel,
-                timestamp: pino.stdTimeFunctions.epochTime,
+                timestamp:
+                    config.logTimeFormat || pino.stdTimeFunctions.isoTime,
                 prettyPrint:
                     process.env.NODE_ENV !== 'production' &&
                     (!getEnvVar('LOG_DISABLE_PRETTY_PRINT', true) as boolean),

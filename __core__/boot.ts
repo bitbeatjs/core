@@ -107,6 +107,7 @@ class Boot extends StateSubscriber {
                 baseDir: this.baseDir,
                 instanceName: this.name,
                 logLevel: this.logLevel,
+                logTimeFormat: this.config.logTimeFormat,
             }) as Store);
 
         this.debug = this.store.generateDebugger('boot');

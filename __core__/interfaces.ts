@@ -1,6 +1,7 @@
 import Middleware from './middleware';
 import { Class } from 'type-fest';
 import Result from './result';
+import { LoggerOptions } from 'pino';
 
 /**
  * Interfaces.
@@ -9,6 +10,7 @@ interface Config {
     extends?: string[];
     fileWatcherDelay?: number;
     logDirectory: string;
+    logTimeFormat?: LoggerOptions['timestamp'];
     directories: {
         [name: string]: DirectorySettings;
     };
