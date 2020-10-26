@@ -45,7 +45,7 @@ export default class Store extends StateSubscriber {
         baseDir: string;
         instanceName: string;
         logLevel?: string;
-        logTimeFormat: LoggerOptions['timestamp'];
+        logTimeFormat?: LoggerOptions['timestamp'];
         language?: string;
     }) {
         super();
