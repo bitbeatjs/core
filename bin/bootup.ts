@@ -8,6 +8,7 @@ import Events from '../__core__/events';
 import Status from '../__core__/status';
 import Store from '../__core__/store';
 import Cli from '../__core__/cli';
+import { existsSync } from 'fs';
 
 let boot: Boot,
     store: Store,
@@ -93,14 +94,37 @@ export default async (): Promise<void> => {
         const bootFilePath =
             boot.getConfig().bootFile || resolve(boot.baseDir, './boot.js');
         let bootFile;
-        try {
-            bootFile = await import(bootFilePath);
-        } catch (e) {
+        const jsExists = existsSync(bootFilePath);
+
+        if (!jsExists) {
+            const tsFile = bootFilePath.replace(/\.js/gi, '.ts');
+            const typeScriptExists = existsSync(tsFile);
+
+            if (typeScriptExists) {
+                store.logger.warn(
+                    `Boot file '${tsFile}' found. Have you build it?`
+                );
+                boot.debug(`Boot file '${tsFile}' found. Have you build it?`);
+            }
+
             store.logger.warn(
                 `Boot file '${bootFilePath}' not found. Skipped registering.`
             );
             boot.debug(
                 `Boot file '${bootFilePath}' not found. Skipped registering.`
+            );
+            boot.next(Events.status, Status.registered);
+            return;
+        }
+
+        try {
+            bootFile = await import(bootFilePath);
+        } catch (e) {
+            store.logger.warn(
+                `Issue while loading '${bootFilePath}'. Skipped registering.`
+            );
+            boot.debug(
+                `Issue while loading '${bootFilePath}'. Skipped registering.`
             );
             boot.next(Events.status, Status.registered);
             return;
