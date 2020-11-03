@@ -96,6 +96,7 @@ export default async (): Promise<void> => {
         let bootFile;
         const jsExists = existsSync(bootFilePath);
 
+        // check if the js version of boot is existing
         if (!jsExists) {
             const tsFile = bootFilePath.replace(/\.js/gi, '.ts');
             const typeScriptExists = existsSync(tsFile);
@@ -117,6 +118,7 @@ export default async (): Promise<void> => {
             return;
         }
 
+        // try to import the content
         try {
             bootFile = await import(bootFilePath);
         } catch (e) {
@@ -130,6 +132,7 @@ export default async (): Promise<void> => {
             return;
         }
 
+        // and run the registers
         try {
             const bootFunction = bootFile['default'];
 
@@ -150,14 +153,34 @@ export default async (): Promise<void> => {
     };
 
     // run the cli tool
-    new Command(packageJson.name)
-        .command('start')
+    const program = new Command(packageJson.name).version(packageJson.version);
+
+    // add the start command
+    program
+        .command('start', {
+            isDefault: true,
+        })
+        .alias('run')
+        .description('Start an instance of bitbeat.')
         .option(
             '-c, --config <path-to-config>',
             'set a config file for bitbeat to use'
         )
+        .option('-l, --local', 'set the node env to local for the run quickly')
+        .option(
+            '-p, --production',
+            'set the node env to production for the run quickly (by default)'
+        )
         .usage(`(${commands.join('|')}) [options]`)
         .action(async (options) => {
+            if (options.local) {
+                process.env.NODE_ENV = 'local';
+            }
+
+            if (options.production) {
+                process.env.NODE_ENV = 'production';
+            }
+
             await initBoot(options.config);
             await new Cli({
                 start: async () => await boot.start(store),
@@ -165,7 +188,43 @@ export default async (): Promise<void> => {
                 shutdown: async () => await boot.shutdown(store),
                 timeout: 10000,
             });
-        })
-        .allowUnknownOption()
-        .parse(process.argv);
+        });
+
+    // add the debug command
+    program
+        .command('debug')
+        .alias('inspect')
+        .alias('dev')
+        .description('Debug an instance of bitbeat.')
+        .option(
+            '-c, --config <path-to-config>',
+            'set a config file for bitbeat to use'
+        )
+        .option('-l, --local', 'set the node env to local for the run quickly')
+        .option(
+            '-p, --production',
+            'set the node env to production for the run quickly (by default)'
+        )
+        .usage(`(${commands.join('|')}) [options]`)
+        .action(async (options) => {
+            if (options.local) {
+                process.env.NODE_ENV = 'local';
+            }
+
+            if (options.production) {
+                process.env.NODE_ENV = 'production';
+            }
+
+            process.env.BITBEAT_DEBUG = 'true';
+            await initBoot(options.config);
+            await new Cli({
+                start: async () => await boot.start(store),
+                restart: async () => await boot.restart(store),
+                shutdown: async () => await boot.shutdown(store),
+                timeout: 10000,
+            });
+        });
+
+    // some default executions
+    program.allowUnknownOption().parse(process.argv);
 };
