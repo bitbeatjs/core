@@ -1,14 +1,14 @@
-import pun from 'please-upgrade-node';
-import { Command } from 'commander';
-import { Logger } from 'pino';
-import { resolve } from 'path';
-import packageJson from '../package.json';
 import Boot from '../__core__/boot';
+import Cli from '../__core__/cli';
 import Events from '../__core__/events';
 import Status from '../__core__/status';
 import Store from '../__core__/store';
-import Cli from '../__core__/cli';
+import packageJson from '../package.json';
+import pun from 'please-upgrade-node';
+import { Command } from 'commander';
+import { Logger } from 'pino';
 import { existsSync } from 'fs';
+import { resolve } from 'path';
 
 let boot: Boot,
     store: Store,
