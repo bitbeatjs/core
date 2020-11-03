@@ -155,6 +155,24 @@ export default async (): Promise<void> => {
     // run the cli tool
     const program = new Command(packageJson.name).version(packageJson.version);
 
+    const startUp = async (options: any) => {
+        if (options.local) {
+            process.env.NODE_ENV = 'local';
+        }
+
+        if (options.production) {
+            process.env.NODE_ENV = 'production';
+        }
+
+        await initBoot(options.config);
+        await new Cli({
+            start: async () => await boot.start(store),
+            restart: async () => await boot.restart(store),
+            shutdown: async () => await boot.shutdown(store),
+            timeout: 10000,
+        });
+    };
+
     // add the start command
     program
         .command('start', {
@@ -173,21 +191,7 @@ export default async (): Promise<void> => {
         )
         .usage(`(${commands.join('|')}) [options]`)
         .action(async (options) => {
-            if (options.local) {
-                process.env.NODE_ENV = 'local';
-            }
-
-            if (options.production) {
-                process.env.NODE_ENV = 'production';
-            }
-
-            await initBoot(options.config);
-            await new Cli({
-                start: async () => await boot.start(store),
-                restart: async () => await boot.restart(store),
-                shutdown: async () => await boot.shutdown(store),
-                timeout: 10000,
-            });
+            await startUp(options);
         });
 
     // add the debug command
@@ -207,22 +211,8 @@ export default async (): Promise<void> => {
         )
         .usage(`(${commands.join('|')}) [options]`)
         .action(async (options) => {
-            if (options.local) {
-                process.env.NODE_ENV = 'local';
-            }
-
-            if (options.production) {
-                process.env.NODE_ENV = 'production';
-            }
-
             process.env.BITBEAT_DEBUG = 'true';
-            await initBoot(options.config);
-            await new Cli({
-                start: async () => await boot.start(store),
-                restart: async () => await boot.restart(store),
-                shutdown: async () => await boot.shutdown(store),
-                timeout: 10000,
-            });
+            await startUp(options);
         });
 
     // some default executions
