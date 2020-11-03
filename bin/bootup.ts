@@ -90,7 +90,8 @@ export default async (): Promise<void> => {
 
         // add the boot files
         boot.next(Events.status, Status.registering);
-        const bootFilePath = resolve(boot.baseDir, './boot.js');
+        const bootFilePath =
+            boot.getConfig().bootFile || resolve(boot.baseDir, './boot.js');
         let bootFile;
         try {
             bootFile = await import(bootFilePath);

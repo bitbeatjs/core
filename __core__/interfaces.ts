@@ -7,6 +7,7 @@ import { LoggerOptions } from 'pino';
  * Interfaces.
  */
 interface Config {
+    bootFile?: string;
     extends?: string[];
     fileWatcherDelay?: number;
     logDirectory: string;
