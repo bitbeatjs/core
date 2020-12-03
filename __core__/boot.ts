@@ -1090,7 +1090,7 @@ class Boot extends StateSubscriber {
         let files: string[] = [];
         const getFilesFromDir = async (pathName: string): Promise<string[]> => {
             const dir = resolve(this.baseDir, pathName);
-            await new Promise((res, rej) => {
+            await new Promise<void>((res, rej) => {
                 if (!existsSync(dir)) {
                     store.debugLog(
                         `No directory named '${dir}' found. Skipping.`,
